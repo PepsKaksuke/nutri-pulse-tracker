@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { UserProfile } from '@/lib/types';
 import { fetchProfils } from '@/services/profilsService';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Pencil } from 'lucide-react';
 
 const Profile = () => {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -80,7 +80,14 @@ const Profile = () => {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {profiles.map((profile) => (
           <div key={profile.id} className="bg-white rounded-xl shadow-sm border p-6">
-            <h2 className="text-xl font-semibold mb-2">{profile.prenom}</h2>
+            <div className="flex justify-between items-start mb-2">
+              <h2 className="text-xl font-semibold">{profile.prenom}</h2>
+              <Link to={`/profil/modifier/${profile.id}`}>
+                <Button variant="ghost" size="icon">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
             <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="text-sm">
                 <span className="text-gray-500">Sexe:</span> {profile.sexe}

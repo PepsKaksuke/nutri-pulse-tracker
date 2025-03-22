@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UserProfile } from '@/lib/types';
-import { createProfil } from '@/services/profilsService';
+import { createProfil, updateProfil } from '@/services/profilsService';
 
 const profileFormSchema = z.object({
   prenom: z.string().min(2, { message: 'Le prénom doit avoir au moins 2 caractères' }),
@@ -47,7 +47,10 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 // Valeurs par défaut basées sur des recommandations générales
-const defaultValues: Partial<ProfileFormValues> = {
+const defaultValues: ProfileFormValues = {
+  prenom: '',
+  sexe: 'Homme',
+  poids: 70,
   objectifs: {
     glucides: 250,
     proteines: 75,
@@ -64,27 +67,61 @@ const defaultValues: Partial<ProfileFormValues> = {
 
 interface ProfileFormProps {
   onSuccess?: (profile: UserProfile) => void;
+  initialData?: UserProfile;
+  isEditing?: boolean;
 }
 
-export function ProfileForm({ onSuccess }: ProfileFormProps) {
+export function ProfileForm({ onSuccess, initialData, isEditing = false }: ProfileFormProps) {
   const navigate = useNavigate();
+  
+  // Préparer les valeurs initiales en cas d'édition
+  const formInitialValues = initialData 
+    ? {
+        prenom: initialData.prenom,
+        sexe: initialData.sexe,
+        poids: initialData.poids,
+        objectifs: initialData.objectifs
+      } 
+    : defaultValues;
+  
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: formInitialValues,
   });
 
   async function onSubmit(data: ProfileFormValues) {
     try {
-      const newProfile = await createProfil(data);
-      toast.success("Profil créé avec succès!");
+      let profile: UserProfile;
+      
+      if (isEditing && initialData) {
+        // Mise à jour d'un profil existant
+        profile = await updateProfil({
+          id: initialData.id,
+          prenom: data.prenom,
+          sexe: data.sexe,
+          poids: data.poids,
+          objectifs: data.objectifs
+        });
+        toast.success("Profil mis à jour avec succès!");
+      } else {
+        // Création d'un nouveau profil
+        profile = await createProfil({
+          prenom: data.prenom,
+          sexe: data.sexe,
+          poids: data.poids,
+          objectifs: data.objectifs
+        });
+        toast.success("Profil créé avec succès!");
+      }
+      
       if (onSuccess) {
-        onSuccess(newProfile);
+        onSuccess(profile);
       } else {
         navigate('/profil');
       }
     } catch (error) {
-      console.error("Erreur lors de la création du profil:", error);
-      toast.error("Erreur lors de la création du profil");
+      console.error(`Erreur lors de la ${isEditing ? 'mise à jour' : 'création'} du profil:`, error);
+      toast.error(`Erreur lors de la ${isEditing ? 'mise à jour' : 'création'} du profil`);
     }
   }
 
@@ -314,7 +351,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         </div>
 
         <Button type="submit" className="w-full md:w-auto">
-          Créer profil
+          {isEditing ? "Mettre à jour le profil" : "Créer profil"}
         </Button>
       </form>
     </Form>

@@ -10,6 +10,7 @@ import FoodDetail from "./pages/FoodDetail";
 import DailyPlate from "./pages/DailyPlate";
 import Profile from "./pages/Profile";
 import CreateProfile from "./pages/CreateProfile";
+import EditProfile from "./pages/EditProfile";
 import AllFoods from "./pages/AllFoods";
 import Navbar from "./components/layout/Navbar";
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/assiette" element={<DailyPlate />} />
               <Route path="/profil" element={<Profile />} />
               <Route path="/profil/creer" element={<CreateProfile />} />
+              <Route path="/profil/modifier/:id" element={<EditProfile />} />
               <Route path="/aliments" element={<AllFoods />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
