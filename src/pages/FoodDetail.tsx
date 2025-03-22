@@ -1,36 +1,60 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, PlusCircle, CheckCircle } from 'lucide-react';
 import HealthBadge from '@/components/ui-custom/HealthBadge';
 import SeasonIcon from '@/components/ui-custom/SeasonIcon';
 import { Food, SelectedFood } from '@/lib/types';
-import { dummyFoods, dummySelectedFoods } from '@/lib/dummyData';
 import { toast } from 'sonner';
+import { fetchAlimentById } from '@/services/alimentsService';
+import { 
+  fetchAlimentsSelectionnes, 
+  addAlimentSelectionne, 
+  removeAlimentSelectionne 
+} from '@/services/alimentsSelectionnesService';
 
 const FoodDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [food, setFood] = useState<Food | null>(null);
   const [isSelected, setIsSelected] = useState(false);
-  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>(dummySelectedFoods);
+  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profilId, setProfilId] = useState<string>("1"); // Profil par défaut pour le moment
 
   useEffect(() => {
-    setLoading(true);
-    setTimeout(() => {
-      const foundFood = dummyFoods.find(f => f.id === id);
-      if (foundFood) {
-        setFood(foundFood);
+    const loadData = async () => {
+      if (!id) return;
+      
+      try {
+        setLoading(true);
         
-        const today = new Date().toISOString().split('T')[0];
-        const foodSelected = dummySelectedFoods.some(sf => 
-          sf.aliment_id === foundFood.id && sf.date_selection === today
-        );
-        setIsSelected(foodSelected);
+        // Récupérer les détails de l'aliment
+        const foodData = await fetchAlimentById(id);
+        if (foodData) {
+          setFood(foodData);
+          
+          // Récupérer les aliments sélectionnés
+          const selected = await fetchAlimentsSelectionnes(profilId);
+          setSelectedFoods(selected);
+          
+          // Vérifier si cet aliment est déjà sélectionné aujourd'hui
+          const today = new Date().toISOString().split('T')[0];
+          const alreadySelected = selected.some(sf => 
+            sf.aliment_id === foodData.id && sf.date_selection === today
+          );
+          setIsSelected(alreadySelected);
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        toast.error('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 300);
-  }, [id]);
+    };
+    
+    loadData();
+  }, [id, profilId]);
 
   useEffect(() => {
     if (!loading && !food) {
@@ -39,28 +63,29 @@ const FoodDetail = () => {
     }
   }, [food, loading, navigate]);
 
-  const toggleSelection = () => {
+  const toggleSelection = async () => {
     if (!food) return;
     
     const today = new Date().toISOString().split('T')[0];
     
-    if (isSelected) {
-      const updatedSelection = selectedFoods.filter(sf => 
-        !(sf.aliment_id === food.id && sf.date_selection === today)
-      );
-      setSelectedFoods(updatedSelection);
-      setIsSelected(false);
-      toast.success(`${food.nom} retiré de votre assiette`);
-    } else {
-      const newSelectedFood: SelectedFood = {
-        id: `${Date.now()}`,
-        profil_id: "1",
-        aliment_id: food.id,
-        date_selection: today
-      };
-      setSelectedFoods([...selectedFoods, newSelectedFood]);
-      setIsSelected(true);
-      toast.success(`${food.nom} ajouté à votre assiette`);
+    try {
+      if (isSelected) {
+        await removeAlimentSelectionne(profilId, food.id, today);
+        const updatedSelection = selectedFoods.filter(sf => 
+          !(sf.aliment_id === food.id && sf.date_selection === today)
+        );
+        setSelectedFoods(updatedSelection);
+        setIsSelected(false);
+        toast.success(`${food.nom} retiré de votre assiette`);
+      } else {
+        const newSelectedFood = await addAlimentSelectionne(profilId, food.id, today);
+        setSelectedFoods([...selectedFoods, newSelectedFood]);
+        setIsSelected(true);
+        toast.success(`${food.nom} ajouté à votre assiette`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la sélection:', error);
+      toast.error('Erreur lors de la mise à jour de votre assiette');
     }
   };
 

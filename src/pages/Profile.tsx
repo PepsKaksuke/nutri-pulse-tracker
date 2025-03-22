@@ -1,34 +1,64 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { User, Edit, Save, X } from 'lucide-react';
 import NutrientProgressBar from '@/components/ui-custom/NutrientProgressBar';
 import { 
-  dummyProfile, 
-  dummySelectedFoods,
+  nutrientRecommendations, 
   calculateDailyIntake,
-  calculateTotalOmega3,
-  nutrientRecommendations,
-  dummyFoods 
+  calculateTotalOmega3
 } from '@/lib/dummyData';
 import { NutrientType, UserProfile } from '@/lib/types';
 import { toast } from 'sonner';
+import { fetchProfilById, updateProfil } from '@/services/profilsService';
+import { getSelectedFoodsForDate } from '@/services/alimentsSelectionnesService';
 
 const Profile = () => {
-  const [profile, setProfile] = useState<UserProfile>(dummyProfile);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<UserProfile>(dummyProfile);
+  const [formData, setFormData] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [todayFoodIds, setTodayFoodIds] = useState<string[]>([]);
   
-  const today = new Date().toISOString().split('T')[0];
-  const todaySelectedIds = dummySelectedFoods
-    .filter(sf => sf.date_selection === today && sf.profil_id === profile.id)
-    .map(sf => sf.aliment_id);
+  // Charger les données du profil
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Récupérer le premier profil utilisateur
+        const profilData = await fetchProfilById("1");
+        
+        if (profilData) {
+          setProfile(profilData);
+          setFormData(profilData);
+          
+          // Récupérer les aliments sélectionnés aujourd'hui
+          const today = new Date().toISOString().split('T')[0];
+          const todayFoods = await getSelectedFoodsForDate(profilData.id, today);
+          setTodayFoodIds(todayFoods.map(food => food.id));
+        } else {
+          toast.error('Aucun profil trouvé');
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        toast.error('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadData();
+  }, []);
   
   const getNutrientInfo = (nutrientType: NutrientType) => {
+    if (!profile) return { current: 0, target: 0, unit: 'g', label: nutrientType, color: 'bg-blue-500' };
+    
     let currentValue = 0;
     
     if (nutrientType === 'omega_3_total') {
-      currentValue = calculateTotalOmega3(todaySelectedIds);
+      currentValue = calculateTotalOmega3(todayFoodIds);
     } else {
-      currentValue = calculateDailyIntake(todaySelectedIds, nutrientType);
+      currentValue = calculateDailyIntake(todayFoodIds, nutrientType);
     }
     
     const recommendation = nutrientRecommendations.find(
@@ -54,8 +84,10 @@ const Profile = () => {
   ];
   
   const startEditing = () => {
-    setFormData({ ...profile });
-    setIsEditing(true);
+    if (profile) {
+      setFormData({ ...profile });
+      setIsEditing(true);
+    }
   };
   
   const cancelEditing = () => {
@@ -63,6 +95,8 @@ const Profile = () => {
   };
   
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!formData) return;
+    
     const { name, value } = e.target;
     
     if (name.startsWith('objectifs.')) {
@@ -82,12 +116,39 @@ const Profile = () => {
     }
   };
   
-  const saveProfile = (e: React.FormEvent) => {
+  const saveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setProfile(formData);
-    setIsEditing(false);
-    toast.success("Profil mis à jour avec succès");
+    
+    if (!formData) return;
+    
+    try {
+      const updatedProfile = await updateProfil(formData);
+      setProfile(updatedProfile);
+      setIsEditing(false);
+      toast.success("Profil mis à jour avec succès");
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      toast.error('Erreur lors de la mise à jour du profil');
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
+        <div className="animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-gray-200"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center">
+        <p>Aucun profil trouvé.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">

@@ -1,35 +1,66 @@
+
 import React, { useState, useEffect } from 'react';
-import { dummyFoods, dummySelectedFoods } from '@/lib/dummyData';
 import { Food, SelectedFood } from '@/lib/types';
 import FoodCard from '@/components/ui-custom/FoodCard';
 import { toast } from 'sonner';
+import { fetchAliments } from '@/services/alimentsService';
+import { 
+  fetchAlimentsSelectionnes, 
+  addAlimentSelectionne, 
+  removeAlimentSelectionne 
+} from '@/services/alimentsSelectionnesService';
 
 const AllFoods = () => {
-  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>(dummySelectedFoods);
+  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
   const [selectedLetter, setSelectedLetter] = useState('A');
   const [foodsByLetter, setFoodsByLetter] = useState<Record<string, Food[]>>({});
   const [availableLetters, setAvailableLetters] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [profilId, setProfilId] = useState<string>("1"); // Profil par défaut pour le moment
   
   useEffect(() => {
-    const groupedFoods: Record<string, Food[]> = {};
-    const letters: Set<string> = new Set();
-    
-    dummyFoods.forEach(food => {
-      const firstLetter = food.nom.charAt(0).toUpperCase();
-      if (!groupedFoods[firstLetter]) {
-        groupedFoods[firstLetter] = [];
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Récupérer tous les aliments
+        const allFoods = await fetchAliments();
+        
+        // Grouper les aliments par première lettre
+        const groupedFoods: Record<string, Food[]> = {};
+        const letters: Set<string> = new Set();
+        
+        allFoods.forEach(food => {
+          const firstLetter = food.nom.charAt(0).toUpperCase();
+          if (!groupedFoods[firstLetter]) {
+            groupedFoods[firstLetter] = [];
+          }
+          groupedFoods[firstLetter].push(food);
+          letters.add(firstLetter);
+        });
+        
+        setFoodsByLetter(groupedFoods);
+        
+        const sortedLetters = Array.from(letters).sort();
+        setAvailableLetters(sortedLetters);
+        
+        if (sortedLetters.length > 0 && !sortedLetters.includes(selectedLetter)) {
+          setSelectedLetter(sortedLetters[0]);
+        }
+        
+        // Récupérer les aliments sélectionnés
+        const selected = await fetchAlimentsSelectionnes(profilId);
+        setSelectedFoods(selected);
+      } catch (error) {
+        console.error('Erreur lors du chargement des données:', error);
+        toast.error('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
       }
-      groupedFoods[firstLetter].push(food);
-      letters.add(firstLetter);
-    });
+    };
     
-    setFoodsByLetter(groupedFoods);
-    setAvailableLetters(Array.from(letters).sort());
-    
-    if (letters.size > 0 && !letters.has(selectedLetter)) {
-      setSelectedLetter(Array.from(letters)[0]);
-    }
-  }, [selectedLetter]);
+    loadData();
+  }, [profilId, selectedLetter]);
   
   const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   
@@ -40,29 +71,42 @@ const AllFoods = () => {
     );
   };
   
-  const handleSelectFood = (food: Food) => {
+  const handleSelectFood = async (food: Food) => {
     const today = new Date().toISOString().split('T')[0];
     const alreadySelected = selectedFoods.find(sf => 
       sf.aliment_id === food.id && sf.date_selection === today
     );
     
-    if (alreadySelected) {
-      const updatedSelection = selectedFoods.filter(sf => 
-        !(sf.aliment_id === food.id && sf.date_selection === today)
-      );
-      setSelectedFoods(updatedSelection);
-      toast.success(`${food.nom} retiré de votre assiette`);
-    } else {
-      const newSelectedFood: SelectedFood = {
-        id: `${Date.now()}`,
-        profil_id: "1",
-        aliment_id: food.id,
-        date_selection: today
-      };
-      setSelectedFoods([...selectedFoods, newSelectedFood]);
-      toast.success(`${food.nom} ajouté à votre assiette`);
+    try {
+      if (alreadySelected) {
+        // Supprimer de la sélection
+        await removeAlimentSelectionne(profilId, food.id, today);
+        const updatedSelection = selectedFoods.filter(sf => 
+          !(sf.aliment_id === food.id && sf.date_selection === today)
+        );
+        setSelectedFoods(updatedSelection);
+        toast.success(`${food.nom} retiré de votre assiette`);
+      } else {
+        // Ajouter à la sélection
+        const newSelectedFood = await addAlimentSelectionne(profilId, food.id, today);
+        setSelectedFoods([...selectedFoods, newSelectedFood]);
+        toast.success(`${food.nom} ajouté à votre assiette`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la sélection:', error);
+      toast.error('Erreur lors de la mise à jour de votre assiette');
     }
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
+        <div className="animate-pulse">
+          <div className="w-12 h-12 rounded-full bg-gray-200"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">
