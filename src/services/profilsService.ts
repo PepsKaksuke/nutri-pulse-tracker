@@ -12,11 +12,11 @@ export async function fetchProfils(): Promise<UserProfile[]> {
     throw error;
   }
   
-  // Convertir les données de Supabase au format UserProfile
+  // Convertir les données de Supabase au format UserProfile avec les bons types
   return data.map(profil => ({
     id: profil.id,
     prenom: profil.prenom,
-    sexe: profil.sexe,
+    sexe: profil.sexe as "Homme" | "Femme" | "Autre",
     poids: parseFloat(profil.poids),
     objectifs: {
       glucides: parseFloat(profil.glucides),
@@ -47,11 +47,11 @@ export async function fetchProfilById(id: string): Promise<UserProfile | null> {
   
   if (!data) return null;
   
-  // Convertir les données de Supabase au format UserProfile
+  // Convertir les données de Supabase au format UserProfile avec les bons types
   return {
     id: data.id,
     prenom: data.prenom,
-    sexe: data.sexe,
+    sexe: data.sexe as "Homme" | "Femme" | "Autre",
     poids: parseFloat(data.poids),
     objectifs: {
       glucides: parseFloat(data.glucides),
@@ -95,11 +95,11 @@ export async function updateProfil(profil: UserProfile): Promise<UserProfile> {
     throw error;
   }
   
-  // Convertir les données de Supabase au format UserProfile
+  // Convertir les données de Supabase au format UserProfile avec les bons types
   return {
     id: data.id,
     prenom: data.prenom,
-    sexe: data.sexe,
+    sexe: data.sexe as "Homme" | "Femme" | "Autre",
     poids: parseFloat(data.poids),
     objectifs: {
       glucides: parseFloat(data.glucides),
@@ -142,11 +142,11 @@ export async function createProfil(profil: Omit<UserProfile, 'id'>): Promise<Use
     throw error;
   }
   
-  // Convertir les données de Supabase au format UserProfile
+  // Convertir les données de Supabase au format UserProfile avec les bons types
   return {
     id: data.id,
     prenom: data.prenom,
-    sexe: data.sexe,
+    sexe: data.sexe as "Homme" | "Femme" | "Autre",
     poids: parseFloat(data.poids),
     objectifs: {
       glucides: parseFloat(data.glucides),

@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Food } from "@/lib/types";
+import { Food, FoodCategory, Season, HealthProperty } from "@/lib/types";
 
 export async function fetchAliments(): Promise<Food[]> {
   const { data, error } = await supabase
@@ -12,14 +12,14 @@ export async function fetchAliments(): Promise<Food[]> {
     throw error;
   }
   
-  // Convertir les données de Supabase au format Food
+  // Convertir les données de Supabase au format Food avec les bons types
   return data.map(aliment => ({
     id: aliment.id,
     nom: aliment.nom,
-    categorie: aliment.categorie,
+    categorie: aliment.categorie as FoodCategory,
     image_url: aliment.image_url,
-    saisons: aliment.saisons,
-    proprietes_sante: aliment.proprietes_sante,
+    saisons: aliment.saisons as Season[],
+    proprietes_sante: aliment.proprietes_sante as HealthProperty[],
     glucides: parseFloat(aliment.glucides),
     proteines: parseFloat(aliment.proteines),
     lipides: parseFloat(aliment.lipides),
@@ -61,14 +61,14 @@ export async function fetchAlimentById(id: string): Promise<Food | null> {
   
   if (!data) return null;
   
-  // Convertir les données de Supabase au format Food
+  // Convertir les données de Supabase au format Food avec les bons types
   return {
     id: data.id,
     nom: data.nom,
-    categorie: data.categorie,
+    categorie: data.categorie as FoodCategory,
     image_url: data.image_url,
-    saisons: data.saisons,
-    proprietes_sante: data.proprietes_sante,
+    saisons: data.saisons as Season[],
+    proprietes_sante: data.proprietes_sante as HealthProperty[],
     glucides: parseFloat(data.glucides),
     proteines: parseFloat(data.proteines),
     lipides: parseFloat(data.lipides),
@@ -113,14 +113,14 @@ export async function searchAliments(query: string): Promise<Food[]> {
     throw error;
   }
   
-  // Convertir les données de Supabase au format Food
+  // Convertir les données de Supabase au format Food avec les bons types
   return data.map(aliment => ({
     id: aliment.id,
     nom: aliment.nom,
-    categorie: aliment.categorie,
+    categorie: aliment.categorie as FoodCategory,
     image_url: aliment.image_url,
-    saisons: aliment.saisons,
-    proprietes_sante: aliment.proprietes_sante,
+    saisons: aliment.saisons as Season[],
+    proprietes_sante: aliment.proprietes_sante as HealthProperty[],
     glucides: parseFloat(aliment.glucides),
     proteines: parseFloat(aliment.proteines),
     lipides: parseFloat(aliment.lipides),
@@ -163,14 +163,14 @@ export async function filterAlimentsByCategory(category: string): Promise<Food[]
     throw error;
   }
   
-  // Convertir les données de Supabase au format Food
+  // Convertir les données de Supabase au format Food avec les bons types
   return data.map(aliment => ({
     id: aliment.id,
     nom: aliment.nom,
-    categorie: aliment.categorie,
+    categorie: aliment.categorie as FoodCategory,
     image_url: aliment.image_url,
-    saisons: aliment.saisons,
-    proprietes_sante: aliment.proprietes_sante,
+    saisons: aliment.saisons as Season[],
+    proprietes_sante: aliment.proprietes_sante as HealthProperty[],
     glucides: parseFloat(aliment.glucides),
     proteines: parseFloat(aliment.proteines),
     lipides: parseFloat(aliment.lipides),
@@ -211,14 +211,14 @@ export async function filterAlimentsBySeason(season: string): Promise<Food[]> {
   // Filtrer les aliments par saison
   const filtered = data.filter(aliment => aliment.saisons.includes(season));
   
-  // Convertir les données filtrées au format Food
+  // Convertir les données filtrées au format Food avec les bons types
   return filtered.map(aliment => ({
     id: aliment.id,
     nom: aliment.nom,
-    categorie: aliment.categorie,
+    categorie: aliment.categorie as FoodCategory,
     image_url: aliment.image_url,
-    saisons: aliment.saisons,
-    proprietes_sante: aliment.proprietes_sante,
+    saisons: aliment.saisons as Season[],
+    proprietes_sante: aliment.proprietes_sante as HealthProperty[],
     glucides: parseFloat(aliment.glucides),
     proteines: parseFloat(aliment.proteines),
     lipides: parseFloat(aliment.lipides),
@@ -259,14 +259,14 @@ export async function filterAlimentsByHealthProperty(property: string): Promise<
   // Filtrer les aliments par propriété santé
   const filtered = data.filter(aliment => aliment.proprietes_sante.includes(property));
   
-  // Convertir les données filtrées au format Food
+  // Convertir les données filtrées au format Food avec les bons types
   return filtered.map(aliment => ({
     id: aliment.id,
     nom: aliment.nom,
-    categorie: aliment.categorie,
+    categorie: aliment.categorie as FoodCategory,
     image_url: aliment.image_url,
-    saisons: aliment.saisons,
-    proprietes_sante: aliment.proprietes_sante,
+    saisons: aliment.saisons as Season[],
+    proprietes_sante: aliment.proprietes_sante as HealthProperty[],
     glucides: parseFloat(aliment.glucides),
     proteines: parseFloat(aliment.proteines),
     lipides: parseFloat(aliment.lipides),
