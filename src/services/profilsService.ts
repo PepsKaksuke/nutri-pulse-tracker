@@ -17,18 +17,18 @@ export async function fetchProfils(): Promise<UserProfile[]> {
     id: profil.id,
     prenom: profil.prenom,
     sexe: profil.sexe as "Homme" | "Femme" | "Autre",
-    poids: parseFloat(profil.poids),
+    poids: Number(profil.poids),
     objectifs: {
-      glucides: parseFloat(profil.glucides),
-      proteines: parseFloat(profil.proteines),
-      lipides: parseFloat(profil.lipides),
-      fibres: parseFloat(profil.fibres),
-      vitamine_c: parseFloat(profil.vitamine_c),
-      vitamine_d: parseFloat(profil.vitamine_d),
-      fer: parseFloat(profil.fer),
-      calcium: parseFloat(profil.calcium),
-      magnesium: parseFloat(profil.magnesium),
-      omega_3_total: parseFloat(profil.omega_3_total)
+      glucides: Number(profil.glucides),
+      proteines: Number(profil.proteines),
+      lipides: Number(profil.lipides),
+      fibres: Number(profil.fibres),
+      vitamine_c: Number(profil.vitamine_c),
+      vitamine_d: Number(profil.vitamine_d),
+      fer: Number(profil.fer),
+      calcium: Number(profil.calcium),
+      magnesium: Number(profil.magnesium),
+      omega_3_total: Number(profil.omega_3_total)
     }
   }));
 }
@@ -52,18 +52,18 @@ export async function fetchProfilById(id: string): Promise<UserProfile | null> {
     id: data.id,
     prenom: data.prenom,
     sexe: data.sexe as "Homme" | "Femme" | "Autre",
-    poids: parseFloat(data.poids),
+    poids: Number(data.poids),
     objectifs: {
-      glucides: parseFloat(data.glucides),
-      proteines: parseFloat(data.proteines),
-      lipides: parseFloat(data.lipides),
-      fibres: parseFloat(data.fibres),
-      vitamine_c: parseFloat(data.vitamine_c),
-      vitamine_d: parseFloat(data.vitamine_d),
-      fer: parseFloat(data.fer),
-      calcium: parseFloat(data.calcium),
-      magnesium: parseFloat(data.magnesium),
-      omega_3_total: parseFloat(data.omega_3_total)
+      glucides: Number(data.glucides),
+      proteines: Number(data.proteines),
+      lipides: Number(data.lipides),
+      fibres: Number(data.fibres),
+      vitamine_c: Number(data.vitamine_c),
+      vitamine_d: Number(data.vitamine_d),
+      fer: Number(data.fer),
+      calcium: Number(data.calcium),
+      magnesium: Number(data.magnesium),
+      omega_3_total: Number(data.omega_3_total)
     }
   };
 }
@@ -100,18 +100,18 @@ export async function updateProfil(profil: UserProfile): Promise<UserProfile> {
     id: data.id,
     prenom: data.prenom,
     sexe: data.sexe as "Homme" | "Femme" | "Autre",
-    poids: parseFloat(data.poids),
+    poids: Number(data.poids),
     objectifs: {
-      glucides: parseFloat(data.glucides),
-      proteines: parseFloat(data.proteines),
-      lipides: parseFloat(data.lipides),
-      fibres: parseFloat(data.fibres),
-      vitamine_c: parseFloat(data.vitamine_c),
-      vitamine_d: parseFloat(data.vitamine_d),
-      fer: parseFloat(data.fer),
-      calcium: parseFloat(data.calcium),
-      magnesium: parseFloat(data.magnesium),
-      omega_3_total: parseFloat(data.omega_3_total)
+      glucides: Number(data.glucides),
+      proteines: Number(data.proteines),
+      lipides: Number(data.lipides),
+      fibres: Number(data.fibres),
+      vitamine_c: Number(data.vitamine_c),
+      vitamine_d: Number(data.vitamine_d),
+      fer: Number(data.fer),
+      calcium: Number(data.calcium),
+      magnesium: Number(data.magnesium),
+      omega_3_total: Number(data.omega_3_total)
     }
   };
 }
@@ -147,18 +147,18 @@ export async function createProfil(profil: Omit<UserProfile, 'id'>): Promise<Use
     id: data.id,
     prenom: data.prenom,
     sexe: data.sexe as "Homme" | "Femme" | "Autre",
-    poids: parseFloat(data.poids),
+    poids: Number(data.poids),
     objectifs: {
-      glucides: parseFloat(data.glucides),
-      proteines: parseFloat(data.proteines),
-      lipides: parseFloat(data.lipides),
-      fibres: parseFloat(data.fibres),
-      vitamine_c: parseFloat(data.vitamine_c),
-      vitamine_d: parseFloat(data.vitamine_d),
-      fer: parseFloat(data.fer),
-      calcium: parseFloat(data.calcium),
-      magnesium: parseFloat(data.magnesium),
-      omega_3_total: parseFloat(data.omega_3_total)
+      glucides: Number(data.glucides),
+      proteines: Number(data.proteines),
+      lipides: Number(data.lipides),
+      fibres: Number(data.fibres),
+      vitamine_c: Number(data.vitamine_c),
+      vitamine_d: Number(data.vitamine_d),
+      fer: Number(data.fer),
+      calcium: Number(data.calcium),
+      magnesium: Number(data.magnesium),
+      omega_3_total: Number(data.omega_3_total)
     }
   };
 }
