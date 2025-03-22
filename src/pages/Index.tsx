@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import FoodCard from '@/components/ui-custom/FoodCard';
@@ -12,7 +11,7 @@ import {
   filterFoodsByHealthProperty,
   filterFoodsBySeason
 } from '@/lib/dummyData';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const Index = () => {
   const [foods, setFoods] = useState<Food[]>(dummyFoods);

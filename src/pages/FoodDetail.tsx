@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, PlusCircle, CheckCircle } from 'lucide-react';
@@ -6,7 +5,7 @@ import HealthBadge from '@/components/ui-custom/HealthBadge';
 import SeasonIcon from '@/components/ui-custom/SeasonIcon';
 import { Food, SelectedFood } from '@/lib/types';
 import { dummyFoods, dummySelectedFoods } from '@/lib/dummyData';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const FoodDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,16 +15,13 @@ const FoodDetail = () => {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>(dummySelectedFoods);
   const [loading, setLoading] = useState(true);
 
-  // Récupérer les données de l'aliment
   useEffect(() => {
     setLoading(true);
-    // Simuler une requête API
     setTimeout(() => {
       const foundFood = dummyFoods.find(f => f.id === id);
       if (foundFood) {
         setFood(foundFood);
         
-        // Vérifier si l'aliment est déjà sélectionné aujourd'hui
         const today = new Date().toISOString().split('T')[0];
         const foodSelected = dummySelectedFoods.some(sf => 
           sf.aliment_id === foundFood.id && sf.date_selection === today
@@ -36,7 +32,6 @@ const FoodDetail = () => {
     }, 300);
   }, [id]);
 
-  // Si l'aliment n'existe pas, rediriger vers la page d'accueil
   useEffect(() => {
     if (!loading && !food) {
       toast.error("Cet aliment n'existe pas");
@@ -44,14 +39,12 @@ const FoodDetail = () => {
     }
   }, [food, loading, navigate]);
 
-  // Fonction pour ajouter/retirer l'aliment de l'assiette du jour
   const toggleSelection = () => {
     if (!food) return;
     
     const today = new Date().toISOString().split('T')[0];
     
     if (isSelected) {
-      // Retirer l'aliment de la sélection
       const updatedSelection = selectedFoods.filter(sf => 
         !(sf.aliment_id === food.id && sf.date_selection === today)
       );
@@ -59,10 +52,9 @@ const FoodDetail = () => {
       setIsSelected(false);
       toast.success(`${food.nom} retiré de votre assiette`);
     } else {
-      // Ajouter l'aliment à la sélection
       const newSelectedFood: SelectedFood = {
         id: `${Date.now()}`,
-        profil_id: "1", // ID utilisateur fixe pour le MVP
+        profil_id: "1",
         aliment_id: food.id,
         date_selection: today
       };
@@ -72,7 +64,6 @@ const FoodDetail = () => {
     }
   };
 
-  // Afficher un loader pendant le chargement
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
@@ -83,23 +74,19 @@ const FoodDetail = () => {
     );
   }
 
-  // Si l'aliment n'existe pas
   if (!food) {
-    return null; // La redirection sera gérée par l'effet
+    return null;
   }
 
-  // Calculer les macronutriments en pourcentage pour le graphique
   const totalMacros = food.glucides + food.proteines + food.lipides;
   const glucidesPercent = Math.round((food.glucides / totalMacros) * 100) || 0;
   const proteinesPercent = Math.round((food.proteines / totalMacros) * 100) || 0;
   const lipidesPercent = Math.round((food.lipides / totalMacros) * 100) || 0;
 
-  // Calculer oméga-3 total
   const omega3Total = food.omega_3_epa + food.omega_3_dha + food.omega_3_ala;
 
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">
-      {/* Bouton retour */}
       <div className="mb-4">
         <Link
           to="/"
@@ -110,7 +97,6 @@ const FoodDetail = () => {
         </Link>
       </div>
 
-      {/* En-tête avec image */}
       <div className="relative w-full h-56 md:h-72 overflow-hidden rounded-2xl mb-6">
         <img
           src={food.image_url}
@@ -119,7 +105,6 @@ const FoodDetail = () => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
         
-        {/* Contenu en-tête */}
         <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
           <div className="flex items-start justify-between">
             <div>
@@ -140,9 +125,7 @@ const FoodDetail = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Colonne gauche - Description et bienfaits */}
         <div className="md:col-span-2 space-y-6">
-          {/* Résumé des bienfaits */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
               <Heart className="text-red-500 h-5 w-5" />
@@ -161,17 +144,14 @@ const FoodDetail = () => {
             </div>
           </div>
 
-          {/* Résumé nutritionnel */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
               <h2 className="text-lg font-medium">Composition nutritionnelle</h2>
             </div>
             <div className="p-5 space-y-4">
-              {/* Macronutriments */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Macronutriments</h3>
                 
-                {/* Barres de macronutriments */}
                 <div className="mb-4">
                   <div className="w-full h-6 bg-gray-100 rounded-full overflow-hidden flex">
                     <div 
@@ -209,7 +189,6 @@ const FoodDetail = () => {
                   </div>
                 </div>
                 
-                {/* Détail des lipides */}
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium mb-2">Détail des lipides</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -233,7 +212,6 @@ const FoodDetail = () => {
                 </div>
               </div>
               
-              {/* Oméga-3 */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Acides gras Oméga-3</h3>
                 <div className="bg-blue-50 p-4 rounded-lg">
@@ -260,7 +238,6 @@ const FoodDetail = () => {
                 </div>
               </div>
               
-              {/* Fibres */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Fibres</h3>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -271,7 +248,6 @@ const FoodDetail = () => {
                 </div>
               </div>
               
-              {/* Vitamines */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Vitamines</h3>
                 <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
@@ -298,7 +274,6 @@ const FoodDetail = () => {
                 </div>
               </div>
               
-              {/* Minéraux */}
               <div>
                 <h3 className="text-sm font-medium text-gray-900 mb-2">Minéraux</h3>
                 <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
@@ -325,7 +300,6 @@ const FoodDetail = () => {
                 </div>
               </div>
               
-              {/* Composés bioactifs */}
               {food.composes_bioactifs.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-2">Composés bioactifs</h3>
@@ -342,9 +316,7 @@ const FoodDetail = () => {
           </div>
         </div>
         
-        {/* Colonne droite - Actions et infos de saison */}
         <div className="space-y-6">
-          {/* Carte d'action */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-20">
             <h3 className="text-lg font-medium mb-4">Ajouter à mon assiette</h3>
             <p className="text-gray-600 text-sm mb-4">
@@ -372,7 +344,6 @@ const FoodDetail = () => {
             </button>
           </div>
           
-          {/* Carte de saison */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100">
               <h3 className="text-lg font-medium">Saisonnalité</h3>

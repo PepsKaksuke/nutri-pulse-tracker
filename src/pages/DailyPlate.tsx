@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, Trash2 } from 'lucide-react';
 import { 
@@ -13,7 +12,7 @@ import {
 import { Food, SelectedFood, NutrientType } from '@/lib/types';
 import FoodCard from '@/components/ui-custom/FoodCard';
 import NutrientProgressBar from '@/components/ui-custom/NutrientProgressBar';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const DailyPlate = () => {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>(dummySelectedFoods);
@@ -22,7 +21,6 @@ const DailyPlate = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Food[]>([]);
   
-  // Récupérer les aliments sélectionnés aujourd'hui
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
     const todaySelectedIds = selectedFoods
@@ -36,7 +34,6 @@ const DailyPlate = () => {
     setTodayFoods(foodsForToday);
   }, [selectedFoods]);
   
-  // Recherche d'aliments
   useEffect(() => {
     if (searchQuery.trim()) {
       setSearchResults(searchFoods(searchQuery));
@@ -45,11 +42,9 @@ const DailyPlate = () => {
     }
   }, [searchQuery]);
   
-  // Ajouter un aliment à l'assiette du jour
   const addFoodToPlate = (food: Food) => {
     const today = new Date().toISOString().split('T')[0];
     
-    // Vérifier si l'aliment est déjà dans l'assiette du jour
     const alreadySelected = selectedFoods.some(sf => 
       sf.aliment_id === food.id && sf.date_selection === today
     );
@@ -59,10 +54,9 @@ const DailyPlate = () => {
       return;
     }
     
-    // Ajouter l'aliment à l'assiette
     const newSelectedFood: SelectedFood = {
       id: `${Date.now()}`,
-      profil_id: "1", // ID utilisateur fixe pour le MVP
+      profil_id: "1",
       aliment_id: food.id,
       date_selection: today
     };
@@ -70,12 +64,10 @@ const DailyPlate = () => {
     setSelectedFoods([...selectedFoods, newSelectedFood]);
     toast.success(`${food.nom} ajouté à votre assiette`);
     
-    // Fermer la recherche
     setSearchOpen(false);
     setSearchQuery('');
   };
   
-  // Retirer un aliment de l'assiette du jour
   const removeFoodFromPlate = (food: Food) => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -87,7 +79,6 @@ const DailyPlate = () => {
     toast.success(`${food.nom} retiré de votre assiette`);
   };
   
-  // Vider l'assiette du jour
   const clearPlate = () => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -99,14 +90,11 @@ const DailyPlate = () => {
     toast.success("Votre assiette a été vidée");
   };
   
-  // Calculer les apports pour chaque nutriment suivi
   const todayFoodIds = todayFoods.map(food => food.id);
   
-  // Obtenir les recommandations et objectifs pour les nutriments
   const getNutrientInfo = (nutrientType: NutrientType) => {
     let currentValue = 0;
     
-    // Cas spécial pour les oméga-3 totaux
     if (nutrientType === 'omega_3_total') {
       currentValue = calculateTotalOmega3(todayFoodIds);
     } else {
@@ -129,7 +117,6 @@ const DailyPlate = () => {
     };
   };
   
-  // Liste des nutriments à afficher
   const nutrientsToShow: NutrientType[] = [
     'glucides', 'proteines', 'lipides', 'fibres', 
     'vitamine_c', 'vitamine_d', 'fer', 'calcium', 
@@ -145,7 +132,6 @@ const DailyPlate = () => {
         </p>
       </div>
       
-      {/* Barre de recherche et actions */}
       <div className="relative max-w-2xl mx-auto mb-6">
         <div className="flex gap-2">
           <button
@@ -167,7 +153,6 @@ const DailyPlate = () => {
           )}
         </div>
         
-        {/* Modal de recherche */}
         {searchOpen && (
           <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-start justify-center pt-16 px-4 animate-fade-in">
             <div className="bg-white rounded-xl w-full max-w-2xl shadow-xl animate-scale-in">
@@ -250,7 +235,6 @@ const DailyPlate = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Aliments sélectionnés aujourd'hui */}
         <div className="md:col-span-2 space-y-4">
           <h2 className="text-xl font-medium">
             Aliments consommés <span className="text-gray-500">({todayFoods.length})</span>
@@ -286,7 +270,6 @@ const DailyPlate = () => {
           )}
         </div>
         
-        {/* Apports nutritionnels */}
         <div className="space-y-4">
           <h2 className="text-xl font-medium">Mes apports du jour</h2>
           

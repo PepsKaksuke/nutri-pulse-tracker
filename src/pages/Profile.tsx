@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User, Edit, Save, X } from 'lucide-react';
 import NutrientProgressBar from '@/components/ui-custom/NutrientProgressBar';
@@ -11,24 +10,21 @@ import {
   dummyFoods 
 } from '@/lib/dummyData';
 import { NutrientType, UserProfile } from '@/lib/types';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const [profile, setProfile] = useState<UserProfile>(dummyProfile);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<UserProfile>(dummyProfile);
   
-  // Récupérer les aliments consommés aujourd'hui
   const today = new Date().toISOString().split('T')[0];
   const todaySelectedIds = dummySelectedFoods
     .filter(sf => sf.date_selection === today && sf.profil_id === profile.id)
     .map(sf => sf.aliment_id);
   
-  // Calculer les apports nutritionnels du jour
   const getNutrientInfo = (nutrientType: NutrientType) => {
     let currentValue = 0;
     
-    // Cas spécial pour les oméga-3 totaux
     if (nutrientType === 'omega_3_total') {
       currentValue = calculateTotalOmega3(todaySelectedIds);
     } else {
@@ -51,30 +47,25 @@ const Profile = () => {
     };
   };
   
-  // Nutriments à afficher
   const nutrientsToShow: NutrientType[] = [
     'glucides', 'proteines', 'lipides', 'fibres', 
     'vitamine_c', 'vitamine_d', 'fer', 'calcium', 
     'magnesium', 'omega_3_total'
   ];
   
-  // Commencer l'édition du profil
   const startEditing = () => {
     setFormData({ ...profile });
     setIsEditing(true);
   };
   
-  // Annuler l'édition
   const cancelEditing = () => {
     setIsEditing(false);
   };
   
-  // Mettre à jour un champ du formulaire
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name.startsWith('objectifs.')) {
-      // Gestion des objectifs nutritionnels
       const nutrientName = name.split('.')[1] as NutrientType;
       setFormData({
         ...formData,
@@ -84,7 +75,6 @@ const Profile = () => {
         }
       });
     } else {
-      // Gestion des autres champs
       setFormData({
         ...formData,
         [name]: name === 'poids' ? parseFloat(value) || 0 : value
@@ -92,7 +82,6 @@ const Profile = () => {
     }
   };
   
-  // Enregistrer les modifications
   const saveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setProfile(formData);
@@ -102,7 +91,6 @@ const Profile = () => {
 
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">
-      {/* En-tête du profil */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="bg-nutri-green-100 p-3 rounded-full">
@@ -123,9 +111,7 @@ const Profile = () => {
         </button>
       </div>
       
-      {/* Contenu principal */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Apports nutritionnels du jour */}
         <div className="space-y-4">
           <h2 className="text-xl font-medium">Mes apports du jour</h2>
           
@@ -147,7 +133,6 @@ const Profile = () => {
           </div>
         </div>
         
-        {/* Formulaire d'édition ou informations du profil */}
         <div className="space-y-4">
           <h2 className="text-xl font-medium">
             {isEditing ? "Modifier mon profil" : "Mes objectifs nutritionnels"}
@@ -156,7 +141,6 @@ const Profile = () => {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             {isEditing ? (
               <form onSubmit={saveProfile} className="space-y-4">
-                {/* Informations personnelles */}
                 <div className="space-y-4 mb-6">
                   <div>
                     <label htmlFor="prenom" className="block text-sm font-medium text-gray-700 mb-1">
@@ -208,7 +192,6 @@ const Profile = () => {
                   </div>
                 </div>
                 
-                {/* Objectifs nutritionnels */}
                 <h3 className="text-md font-medium text-gray-900 mb-3">Objectifs nutritionnels quotidiens</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -235,7 +218,6 @@ const Profile = () => {
                   })}
                 </div>
                 
-                {/* Actions */}
                 <div className="flex justify-end gap-3 mt-6">
                   <button
                     type="button"
@@ -256,7 +238,6 @@ const Profile = () => {
               </form>
             ) : (
               <div className="space-y-6">
-                {/* Objectifs nutritionnels */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {nutrientsToShow.map(nutrient => {
                     const rec = nutrientRecommendations.find(r => r.nutrient === nutrient);

@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { dummyFoods, dummySelectedFoods } from '@/lib/dummyData';
 import { Food, SelectedFood } from '@/lib/types';
 import FoodCard from '@/components/ui-custom/FoodCard';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 const AllFoods = () => {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>(dummySelectedFoods);
@@ -11,7 +10,6 @@ const AllFoods = () => {
   const [foodsByLetter, setFoodsByLetter] = useState<Record<string, Food[]>>({});
   const [availableLetters, setAvailableLetters] = useState<string[]>([]);
   
-  // Organiser les aliments par lettre
   useEffect(() => {
     const groupedFoods: Record<string, Food[]> = {};
     const letters: Set<string> = new Set();
@@ -28,16 +26,13 @@ const AllFoods = () => {
     setFoodsByLetter(groupedFoods);
     setAvailableLetters(Array.from(letters).sort());
     
-    // Sélectionner la première lettre disponible
     if (letters.size > 0 && !letters.has(selectedLetter)) {
       setSelectedLetter(Array.from(letters)[0]);
     }
   }, [selectedLetter]);
   
-  // Générer l'alphabet complet
   const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   
-  // Vérifier si un aliment est dans la sélection du jour
   const isSelected = (foodId: string) => {
     const today = new Date().toISOString().split('T')[0];
     return selectedFoods.some(sf => 
@@ -45,7 +40,6 @@ const AllFoods = () => {
     );
   };
   
-  // Gérer la sélection d'un aliment
   const handleSelectFood = (food: Food) => {
     const today = new Date().toISOString().split('T')[0];
     const alreadySelected = selectedFoods.find(sf => 
@@ -53,17 +47,15 @@ const AllFoods = () => {
     );
     
     if (alreadySelected) {
-      // Supprimer de la sélection
       const updatedSelection = selectedFoods.filter(sf => 
         !(sf.aliment_id === food.id && sf.date_selection === today)
       );
       setSelectedFoods(updatedSelection);
       toast.success(`${food.nom} retiré de votre assiette`);
     } else {
-      // Ajouter à la sélection
       const newSelectedFood: SelectedFood = {
         id: `${Date.now()}`,
-        profil_id: "1", // ID utilisateur fixe pour le MVP
+        profil_id: "1",
         aliment_id: food.id,
         date_selection: today
       };
@@ -81,7 +73,6 @@ const AllFoods = () => {
         </p>
       </div>
       
-      {/* Navigation alphabétique */}
       <div className="sticky top-16 z-10 bg-white border-b border-gray-100 shadow-sm mb-6">
         <div className="container mx-auto px-4 py-3 overflow-x-auto">
           <div className="flex justify-center md:justify-start space-x-1 md:space-x-2">
@@ -110,7 +101,6 @@ const AllFoods = () => {
         </div>
       </div>
       
-      {/* Affichage des aliments par lettre */}
       <div>
         {Object.keys(foodsByLetter).length === 0 ? (
           <div className="text-center py-12">
