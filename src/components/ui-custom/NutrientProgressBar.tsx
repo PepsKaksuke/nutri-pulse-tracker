@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 interface NutrientProgressBarProps {
   label: string;
@@ -9,6 +10,7 @@ interface NutrientProgressBarProps {
   recommendation?: number;
   unit: string;
   color?: string;
+  icon?: React.ReactNode;
   className?: string;
 }
 
@@ -19,9 +21,10 @@ export const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
   recommendation,
   unit,
   color = 'bg-nutri-green-400',
+  icon,
   className
 }) => {
-  // Calcul du pourcentage (limité à 100%)
+  // Calcul du pourcentage (limité à 100% pour l'affichage)
   const percentage = Math.min(Math.round((current / target) * 100), 100);
   
   // Formatage des nombres selon l'unité
@@ -35,20 +38,29 @@ export const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between">
-        <div className="text-sm font-medium">{label}</div>
+        <div className="flex items-center text-sm font-medium">
+          {icon && <span className="mr-1.5 text-muted-foreground">{icon}</span>}
+          {label}
+        </div>
         <div className="text-xs text-muted-foreground">
-          {formatNumber(current)}/{formatNumber(target)} {unit}
+          {formatNumber(target)} {unit}
+          {recommendation && (
+            <span className="ml-1 text-muted-foreground/60">
+              (recommandé: {formatNumber(recommendation)} {unit})
+            </span>
+          )}
         </div>
       </div>
       
-      <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div 
-          className={cn("h-full transition-all duration-500 ease-in-out", color)}
-          style={{ width: `${percentage}%` }}
+      <div className="relative h-2 w-full">
+        <Progress 
+          value={percentage} 
+          className="h-2 bg-muted"
+          indicatorClassName={cn("transition-all duration-500 ease-in-out", color)}
         />
         
         {/* Indicateur de recommandation si fourni */}
-        {recommendation && (
+        {recommendation && target !== recommendation && (
           <div 
             className="absolute top-0 bottom-0 w-0.5 bg-gray-800"
             style={{ 
@@ -61,12 +73,7 @@ export const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
       
       {/* Pourcentage */}
       <div className="text-xs text-right text-muted-foreground">
-        {percentage}%
-        {recommendation && (
-          <span className="ml-2 text-xs text-muted-foreground">
-            (Recommandation: {formatNumber(recommendation)} {unit})
-          </span>
-        )}
+        {percentage}% de l'objectif
       </div>
     </div>
   );

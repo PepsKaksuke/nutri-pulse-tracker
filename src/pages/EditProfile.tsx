@@ -6,6 +6,7 @@ import { fetchProfilById } from '@/services/profilsService';
 import { UserProfile } from '@/lib/types';
 import { toast } from 'sonner';
 import { useProfile } from '@/contexts/ProfileContext';
+import { Loader2 } from 'lucide-react';
 
 const EditProfile = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,9 +32,6 @@ const EditProfile = () => {
         }
         
         setProfile(profileData);
-        
-        // Call refreshProfiles but we don't need to use the returned value
-        await refreshProfiles();
       } catch (error) {
         console.error("Erreur lors du chargement du profil:", error);
         toast.error("Erreur lors du chargement du profil");
@@ -44,13 +42,14 @@ const EditProfile = () => {
     };
     
     loadProfile();
-  }, [id, navigate, refreshProfiles]);
+  }, [id, navigate]);
   
   if (loading) {
     return (
       <div className="container mx-auto py-8">
-        <div className="max-w-4xl mx-auto">
-          <p>Chargement du profil...</p>
+        <div className="max-w-4xl mx-auto flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="ml-2">Chargement du profil...</p>
         </div>
       </div>
     );
@@ -67,7 +66,19 @@ const EditProfile = () => {
         </div>
         
         <div className="bg-white rounded-xl shadow-sm border p-6">
-          {profile && <ProfileForm initialData={profile} isEditing={true} />}
+          {profile && (
+            <ProfileForm 
+              initialData={profile} 
+              isEditing={true} 
+              onSuccess={() => {
+                // Refresh profiles after successful update
+                refreshProfiles().then(() => {
+                  // Navigate back to profile page
+                  navigate('/profil');
+                });
+              }} 
+            />
+          )}
         </div>
       </div>
     </div>

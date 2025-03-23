@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon, Pencil, UserIcon } from 'lucide-react';
 import { useProfile } from '@/contexts/ProfileContext';
 import { toast } from 'sonner';
+import NutrientGoalsList from '@/components/profile/NutrientGoalsList';
 
 const Profile = () => {
   const { profiles, loading, refreshProfiles, activeProfileId, setActiveProfileId } = useProfile();
@@ -99,18 +100,9 @@ const Profile = () => {
             </div>
             
             <h3 className="font-medium text-sm text-gray-500 mb-2">Objectifs quotidiens:</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-              <div><span className="text-gray-500">Glucides:</span> {profile.objectifs.glucides}g</div>
-              <div><span className="text-gray-500">Protéines:</span> {profile.objectifs.proteines}g</div>
-              <div><span className="text-gray-500">Lipides:</span> {profile.objectifs.lipides}g</div>
-              <div><span className="text-gray-500">Fibres:</span> {profile.objectifs.fibres}g</div>
-              <div><span className="text-gray-500">Vit. C:</span> {profile.objectifs.vitamine_c}mg</div>
-              <div><span className="text-gray-500">Vit. D:</span> {profile.objectifs.vitamine_d}μg</div>
-              <div><span className="text-gray-500">Fer:</span> {profile.objectifs.fer}mg</div>
-              <div><span className="text-gray-500">Calcium:</span> {profile.objectifs.calcium}mg</div>
-              <div><span className="text-gray-500">Magnésium:</span> {profile.objectifs.magnesium}mg</div>
-              <div><span className="text-gray-500">Oméga-3:</span> {profile.objectifs.omega_3_total}g</div>
-            </div>
+            
+            {/* Afficher les objectifs nutritionnels avec les barres de progression */}
+            <NutrientGoalsList profile={profile} className="mt-4" />
           </div>
         ))}
       </div>
