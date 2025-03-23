@@ -43,8 +43,8 @@ export const NutrientProgressBar: React.FC<NutrientProgressBarProps> = ({
           {label}
         </div>
         <div className="text-xs text-muted-foreground">
-          {formatNumber(target)} {unit}
-          {recommendation && (
+          {formatNumber(current)} / {formatNumber(target)} {unit}
+          {recommendation && recommendation !== target && (
             <span className="ml-1 text-muted-foreground/60">
               (recommandé: {formatNumber(recommendation)} {unit})
             </span>

@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { UserProfile } from '@/lib/types';
+import React, { useState, useEffect } from 'react';
+import { UserProfile, NutrientType } from '@/lib/types';
 import NutrientProgressBar from '@/components/ui-custom/NutrientProgressBar';
 import { 
   Apple, 
@@ -12,6 +12,7 @@ import {
   Sun, 
   Wheat 
 } from 'lucide-react';
+import { getSelectedFoodsForDate } from '@/services/alimentsSelectionnesService';
 
 type NutrientGoalsListProps = {
   profile: UserProfile;
@@ -56,6 +57,68 @@ const nutrientIcons = {
 };
 
 export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps) => {
+  const [todayConsumption, setTodayConsumption] = useState<Record<NutrientType, number>>({
+    glucides: 0,
+    proteines: 0,
+    lipides: 0,
+    fibres: 0,
+    vitamine_c: 0,
+    vitamine_d: 0,
+    fer: 0,
+    calcium: 0,
+    magnesium: 0,
+    omega_3_total: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTodayFoods = async () => {
+      try {
+        setLoading(true);
+        // Récupérer les aliments d'aujourd'hui
+        const today = new Date().toISOString().split('T')[0];
+        const foods = await getSelectedFoodsForDate(profile.id, today);
+        
+        // Calculer la somme des nutriments
+        const consumption: Record<NutrientType, number> = {
+          glucides: 0,
+          proteines: 0,
+          lipides: 0,
+          fibres: 0,
+          vitamine_c: 0,
+          vitamine_d: 0,
+          fer: 0,
+          calcium: 0,
+          magnesium: 0,
+          omega_3_total: 0
+        };
+        
+        foods.forEach(food => {
+          consumption.glucides += food.glucides || 0;
+          consumption.proteines += food.proteines || 0;
+          consumption.lipides += food.lipides || 0;
+          consumption.fibres += food.fibres || 0;
+          consumption.vitamine_c += food.vitamine_c || 0;
+          consumption.vitamine_d += food.vitamine_d || 0;
+          consumption.fer += food.fer || 0;
+          consumption.calcium += food.calcium || 0;
+          consumption.magnesium += food.magnesium || 0;
+          consumption.omega_3_total += (food.omega_3_ala + food.omega_3_epa + food.omega_3_dha) || 0;
+        });
+        
+        setTodayConsumption(consumption);
+      } catch (error) {
+        console.error('Erreur lors du chargement des aliments du jour:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (profile) {
+      loadTodayFoods();
+    }
+  }, [profile]);
+
   if (!profile) return null;
 
   return (
@@ -64,7 +127,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         <h3 className="text-sm font-medium text-muted-foreground">Macronutriments</h3>
         <NutrientProgressBar 
           label="Glucides" 
-          current={profile.objectifs.glucides}
+          current={todayConsumption.glucides}
           target={profile.objectifs.glucides}
           recommendation={recommendedValues.glucides}
           unit="g"
@@ -73,7 +136,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Protéines" 
-          current={profile.objectifs.proteines}
+          current={todayConsumption.proteines}
           target={profile.objectifs.proteines}
           recommendation={recommendedValues.proteines}
           unit="g"
@@ -82,7 +145,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Lipides" 
-          current={profile.objectifs.lipides}
+          current={todayConsumption.lipides}
           target={profile.objectifs.lipides}
           recommendation={recommendedValues.lipides}
           unit="g"
@@ -91,7 +154,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Fibres" 
-          current={profile.objectifs.fibres}
+          current={todayConsumption.fibres}
           target={profile.objectifs.fibres}
           recommendation={recommendedValues.fibres}
           unit="g"
@@ -104,7 +167,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         <h3 className="text-sm font-medium text-muted-foreground">Vitamines</h3>
         <NutrientProgressBar 
           label="Vitamine C" 
-          current={profile.objectifs.vitamine_c}
+          current={todayConsumption.vitamine_c}
           target={profile.objectifs.vitamine_c}
           recommendation={recommendedValues.vitamine_c}
           unit="mg"
@@ -113,7 +176,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Vitamine D" 
-          current={profile.objectifs.vitamine_d}
+          current={todayConsumption.vitamine_d}
           target={profile.objectifs.vitamine_d}
           recommendation={recommendedValues.vitamine_d}
           unit="µg"
@@ -126,7 +189,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         <h3 className="text-sm font-medium text-muted-foreground">Minéraux</h3>
         <NutrientProgressBar 
           label="Fer" 
-          current={profile.objectifs.fer}
+          current={todayConsumption.fer}
           target={profile.objectifs.fer}
           recommendation={recommendedValues.fer}
           unit="mg"
@@ -135,7 +198,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Calcium" 
-          current={profile.objectifs.calcium}
+          current={todayConsumption.calcium}
           target={profile.objectifs.calcium}
           recommendation={recommendedValues.calcium}
           unit="mg"
@@ -144,7 +207,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         />
         <NutrientProgressBar 
           label="Magnésium" 
-          current={profile.objectifs.magnesium}
+          current={todayConsumption.magnesium}
           target={profile.objectifs.magnesium}
           recommendation={recommendedValues.magnesium}
           unit="mg"
@@ -157,7 +220,7 @@ export const NutrientGoalsList = ({ profile, className }: NutrientGoalsListProps
         <h3 className="text-sm font-medium text-muted-foreground">Acides gras essentiels</h3>
         <NutrientProgressBar 
           label="Oméga-3" 
-          current={profile.objectifs.omega_3_total}
+          current={todayConsumption.omega_3_total}
           target={profile.objectifs.omega_3_total}
           recommendation={recommendedValues.omega_3_total}
           unit="g"

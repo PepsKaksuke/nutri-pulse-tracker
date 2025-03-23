@@ -3,8 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, X, Trash2 } from 'lucide-react';
 import { 
   nutrientRecommendations,
-  calculateDailyIntake,
-  calculateTotalOmega3,
 } from '@/lib/dummyData';
 import { Food, SelectedFood, NutrientType } from '@/lib/types';
 import FoodCard from '@/components/ui-custom/FoodCard';
@@ -158,16 +156,24 @@ const DailyPlate = () => {
     }
   };
   
+  // Calculer la somme des nutriments pour les aliments d'aujourd'hui
+  const calculateNutrientTotal = (nutrientType: NutrientType): number => {
+    return todayFoods.reduce((total, food) => {
+      // Pour omega_3_total, calculer la somme des différents oméga-3
+      if (nutrientType === 'omega_3_total') {
+        return total + (food.omega_3_ala + food.omega_3_epa + food.omega_3_dha);
+      }
+      
+      // Pour les autres nutriments, utiliser directement la valeur
+      return total + (food[nutrientType] || 0);
+    }, 0);
+  };
+  
   const getNutrientInfo = (nutrientType: NutrientType) => {
     if (!activeProfile) return { current: 0, target: 0, unit: 'g', label: nutrientType, color: 'bg-blue-500' };
     
-    let currentValue = 0;
-    
-    if (nutrientType === 'omega_3_total') {
-      currentValue = calculateTotalOmega3(todayFoodIds);
-    } else {
-      currentValue = calculateDailyIntake(todayFoodIds, nutrientType);
-    }
+    // Calculer l'apport actuel basé sur les aliments consommés
+    const currentValue = calculateNutrientTotal(nutrientType);
     
     const recommendation = nutrientRecommendations.find(
       rec => rec.nutrient === nutrientType
