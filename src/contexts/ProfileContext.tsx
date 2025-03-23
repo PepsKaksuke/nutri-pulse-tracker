@@ -11,7 +11,7 @@ type ProfileContextType = {
   setActiveProfileId: (id: string | null) => void;
   loading: boolean;
   profiles: UserProfile[];
-  refreshProfiles: () => Promise<void>;
+  refreshProfiles: () => Promise<UserProfile[]>; // Changed return type from void to UserProfile[]
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);

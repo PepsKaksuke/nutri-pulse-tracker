@@ -32,8 +32,8 @@ const EditProfile = () => {
         
         setProfile(profileData);
         
-        // Rafraîchir les profils dans le contexte pour s'assurer que la liste est à jour
-        refreshProfiles();
+        // Call refreshProfiles but we don't need to use the returned value
+        await refreshProfiles();
       } catch (error) {
         console.error("Erreur lors du chargement du profil:", error);
         toast.error("Erreur lors du chargement du profil");
