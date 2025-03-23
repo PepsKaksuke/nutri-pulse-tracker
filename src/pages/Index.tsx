@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import FoodCard from '@/components/ui-custom/FoodCard';
@@ -17,7 +16,8 @@ import {
   addAlimentSelectionne,
   removeAlimentSelectionne
 } from '@/services/alimentsSelectionnesService';
-import { fetchProfilById } from '@/services/profilsService';
+import { useProfile } from '@/contexts/ProfileContext';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const [foods, setFoods] = useState<Food[]>([]);
@@ -30,36 +30,9 @@ const Index = () => {
     seasons: [] as Season[]
   });
   const [loading, setLoading] = useState(true);
-  const [profilId, setProfilId] = useState<string | null>(null);
-
-  // Récupérer les données au chargement
-  useEffect(() => {
-    const initData = async () => {
-      try {
-        setLoading(true);
-        // Récupérer le premier profil utilisateur comme profil actif
-        const profils = await fetchProfilById("1");
-        if (profils) {
-          setProfilId(profils.id);
-          
-          // Récupérer les aliments sélectionnés par ce profil
-          const selected = await fetchAlimentsSelectionnes(profils.id);
-          setSelectedFoods(selected);
-        }
-        
-        // Récupérer tous les aliments
-        const allFoods = await fetchAliments();
-        setFoods(allFoods);
-      } catch (error) {
-        console.error('Erreur lors de l\'initialisation des données:', error);
-        toast.error('Erreur lors du chargement des données');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    initData();
-  }, []);
+  
+  const { activeProfileId } = useProfile();
+  const navigate = useNavigate();
 
   // Catégories disponibles
   const categories: FoodCategory[] = [
@@ -76,6 +49,32 @@ const Index = () => {
   const seasons: Season[] = [
     'Printemps', 'Été', 'Automne', 'Hiver', "Toute l'année"
   ];
+
+  // Récupérer les données au chargement
+  useEffect(() => {
+    const initData = async () => {
+      try {
+        setLoading(true);
+        
+        // Récupérer les aliments sélectionnés par ce profil si un profil est actif
+        if (activeProfileId) {
+          const selected = await fetchAlimentsSelectionnes(activeProfileId);
+          setSelectedFoods(selected);
+        }
+        
+        // Récupérer tous les aliments
+        const allFoods = await fetchAliments();
+        setFoods(allFoods);
+      } catch (error) {
+        console.error('Erreur lors de l\'initialisation des données:', error);
+        toast.error('Erreur lors du chargement des données');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    initData();
+  }, [activeProfileId]);
 
   // Recherche de foods
   useEffect(() => {
@@ -115,6 +114,8 @@ const Index = () => {
 
   // Vérifier si un aliment est dans la sélection du jour
   const isSelected = (foodId: string) => {
+    if (!activeProfileId) return false;
+    
     const today = new Date().toISOString().split('T')[0];
     return selectedFoods.some(sf => 
       sf.aliment_id === foodId && sf.date_selection === today
@@ -123,8 +124,9 @@ const Index = () => {
 
   // Gérer la sélection d'un aliment
   const handleSelectFood = async (food: Food) => {
-    if (!profilId) {
-      toast.error('Aucun profil utilisateur actif');
+    if (!activeProfileId) {
+      toast.error('Veuillez sélectionner un profil pour ajouter des aliments');
+      navigate('/profil/selection');
       return;
     }
     
@@ -136,7 +138,7 @@ const Index = () => {
     try {
       if (alreadySelected) {
         // Supprimer de la sélection
-        await removeAlimentSelectionne(profilId, food.id, today);
+        await removeAlimentSelectionne(activeProfileId, food.id, today);
         const updatedSelection = selectedFoods.filter(sf => 
           !(sf.aliment_id === food.id && sf.date_selection === today)
         );
@@ -144,7 +146,7 @@ const Index = () => {
         toast.success(`${food.nom} retiré de votre assiette`);
       } else {
         // Ajouter à la sélection
-        const newSelectedFood = await addAlimentSelectionne(profilId, food.id, today);
+        const newSelectedFood = await addAlimentSelectionne(activeProfileId, food.id, today);
         setSelectedFoods([...selectedFoods, newSelectedFood]);
         toast.success(`${food.nom} ajouté à votre assiette`);
       }

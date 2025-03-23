@@ -9,6 +9,8 @@ import {
   addAlimentSelectionne, 
   removeAlimentSelectionne 
 } from '@/services/alimentsSelectionnesService';
+import { useProfile } from '@/contexts/ProfileContext';
+import { useNavigate } from 'react-router-dom';
 
 const AllFoods = () => {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
@@ -16,7 +18,9 @@ const AllFoods = () => {
   const [foodsByLetter, setFoodsByLetter] = useState<Record<string, Food[]>>({});
   const [availableLetters, setAvailableLetters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profilId, setProfilId] = useState<string>("1"); // Profil par défaut pour le moment
+  
+  const { activeProfileId } = useProfile();
+  const navigate = useNavigate();
   
   useEffect(() => {
     const loadData = async () => {
@@ -48,9 +52,11 @@ const AllFoods = () => {
           setSelectedLetter(sortedLetters[0]);
         }
         
-        // Récupérer les aliments sélectionnés
-        const selected = await fetchAlimentsSelectionnes(profilId);
-        setSelectedFoods(selected);
+        // Récupérer les aliments sélectionnés si un profil est actif
+        if (activeProfileId) {
+          const selected = await fetchAlimentsSelectionnes(activeProfileId);
+          setSelectedFoods(selected);
+        }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         toast.error('Erreur lors du chargement des données');
@@ -60,11 +66,13 @@ const AllFoods = () => {
     };
     
     loadData();
-  }, [profilId, selectedLetter]);
+  }, [activeProfileId, selectedLetter]);
   
   const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   
   const isSelected = (foodId: string) => {
+    if (!activeProfileId) return false;
+    
     const today = new Date().toISOString().split('T')[0];
     return selectedFoods.some(sf => 
       sf.aliment_id === foodId && sf.date_selection === today
@@ -72,6 +80,12 @@ const AllFoods = () => {
   };
   
   const handleSelectFood = async (food: Food) => {
+    if (!activeProfileId) {
+      toast.error('Veuillez sélectionner un profil pour ajouter des aliments');
+      navigate('/profil/selection');
+      return;
+    }
+    
     const today = new Date().toISOString().split('T')[0];
     const alreadySelected = selectedFoods.find(sf => 
       sf.aliment_id === food.id && sf.date_selection === today
@@ -80,7 +94,7 @@ const AllFoods = () => {
     try {
       if (alreadySelected) {
         // Supprimer de la sélection
-        await removeAlimentSelectionne(profilId, food.id, today);
+        await removeAlimentSelectionne(activeProfileId, food.id, today);
         const updatedSelection = selectedFoods.filter(sf => 
           !(sf.aliment_id === food.id && sf.date_selection === today)
         );
@@ -88,7 +102,7 @@ const AllFoods = () => {
         toast.success(`${food.nom} retiré de votre assiette`);
       } else {
         // Ajouter à la sélection
-        const newSelectedFood = await addAlimentSelectionne(profilId, food.id, today);
+        const newSelectedFood = await addAlimentSelectionne(activeProfileId, food.id, today);
         setSelectedFoods([...selectedFoods, newSelectedFood]);
         toast.success(`${food.nom} ajouté à votre assiette`);
       }

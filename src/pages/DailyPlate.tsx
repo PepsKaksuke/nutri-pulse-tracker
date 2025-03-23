@@ -10,7 +10,6 @@ import { Food, SelectedFood, NutrientType } from '@/lib/types';
 import FoodCard from '@/components/ui-custom/FoodCard';
 import NutrientProgressBar from '@/components/ui-custom/NutrientProgressBar';
 import { toast } from 'sonner';
-import { fetchProfilById } from '@/services/profilsService';
 import { 
   getSelectedFoodsForDate,
   addAlimentSelectionne,
@@ -18,37 +17,41 @@ import {
   clearAlimentsSelectionnesForDate
 } from '@/services/alimentsSelectionnesService';
 import { searchAliments } from '@/services/alimentsService';
+import { useProfile } from '@/contexts/ProfileContext';
+import { useNavigate } from 'react-router-dom';
 
 const DailyPlate = () => {
-  const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
   const [todayFoods, setTodayFoods] = useState<Food[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
   const [todayFoodIds, setTodayFoodIds] = useState<string[]>([]);
+  
+  const { activeProfile, activeProfileId } = useProfile();
+  const navigate = useNavigate();
+  
+  // Redirect to profile selection if no active profile
+  useEffect(() => {
+    if (!loading && !activeProfileId) {
+      toast.error("Veuillez sélectionner un profil pour accéder à votre assiette");
+      navigate('/profil/selection');
+    }
+  }, [activeProfileId, loading, navigate]);
   
   // Charger les données
   useEffect(() => {
     const loadData = async () => {
+      if (!activeProfileId) return;
+      
       try {
         setLoading(true);
         
-        // Récupérer le profil utilisateur
-        const profileData = await fetchProfilById("1");
-        
-        if (profileData) {
-          setProfile(profileData);
-          
-          // Récupérer les aliments d'aujourd'hui
-          const today = new Date().toISOString().split('T')[0];
-          const foods = await getSelectedFoodsForDate(profileData.id, today);
-          setTodayFoods(foods);
-          setTodayFoodIds(foods.map(food => food.id));
-        } else {
-          toast.error('Aucun profil trouvé');
-        }
+        // Récupérer les aliments d'aujourd'hui
+        const today = new Date().toISOString().split('T')[0];
+        const foods = await getSelectedFoodsForDate(activeProfileId, today);
+        setTodayFoods(foods);
+        setTodayFoodIds(foods.map(food => food.id));
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
         toast.error('Erreur lors du chargement des données');
@@ -58,7 +61,7 @@ const DailyPlate = () => {
     };
     
     loadData();
-  }, []);
+  }, [activeProfileId]);
   
   // Effectuer la recherche
   useEffect(() => {
@@ -80,7 +83,7 @@ const DailyPlate = () => {
   }, [searchQuery]);
   
   const addFoodToPlate = async (food: Food) => {
-    if (!profile) {
+    if (!activeProfileId) {
       toast.error('Aucun profil utilisateur actif');
       return;
     }
@@ -95,7 +98,7 @@ const DailyPlate = () => {
     }
     
     try {
-      await addAlimentSelectionne(profile.id, food.id, today);
+      await addAlimentSelectionne(activeProfileId, food.id, today);
       
       // Mettre à jour l'UI
       setTodayFoods([...todayFoods, food]);
@@ -111,7 +114,7 @@ const DailyPlate = () => {
   };
   
   const removeFoodFromPlate = async (food: Food) => {
-    if (!profile) {
+    if (!activeProfileId) {
       toast.error('Aucun profil utilisateur actif');
       return;
     }
@@ -119,7 +122,7 @@ const DailyPlate = () => {
     const today = new Date().toISOString().split('T')[0];
     
     try {
-      await removeAlimentSelectionne(profile.id, food.id, today);
+      await removeAlimentSelectionne(activeProfileId, food.id, today);
       
       // Mettre à jour l'UI
       const updatedFoods = todayFoods.filter(f => f.id !== food.id);
@@ -134,7 +137,7 @@ const DailyPlate = () => {
   };
   
   const clearPlate = async () => {
-    if (!profile) {
+    if (!activeProfileId) {
       toast.error('Aucun profil utilisateur actif');
       return;
     }
@@ -142,7 +145,7 @@ const DailyPlate = () => {
     const today = new Date().toISOString().split('T')[0];
     
     try {
-      await clearAlimentsSelectionnesForDate(profile.id, today);
+      await clearAlimentsSelectionnesForDate(activeProfileId, today);
       
       // Mettre à jour l'UI
       setTodayFoods([]);
@@ -156,7 +159,7 @@ const DailyPlate = () => {
   };
   
   const getNutrientInfo = (nutrientType: NutrientType) => {
-    if (!profile) return { current: 0, target: 0, unit: 'g', label: nutrientType, color: 'bg-blue-500' };
+    if (!activeProfile) return { current: 0, target: 0, unit: 'g', label: nutrientType, color: 'bg-blue-500' };
     
     let currentValue = 0;
     
@@ -170,7 +173,7 @@ const DailyPlate = () => {
       rec => rec.nutrient === nutrientType
     );
     
-    const target = profile.objectifs[nutrientType];
+    const target = activeProfile.objectifs[nutrientType];
     
     return {
       current: currentValue,
@@ -203,7 +206,10 @@ const DailyPlate = () => {
       <div className="text-center max-w-2xl mx-auto mb-8">
         <h1 className="text-2xl md:text-3xl font-bold mb-2">Mon assiette du jour</h1>
         <p className="text-gray-600">
-          Suivez vos apports nutritionnels quotidiens en ajoutant les aliments consommés.
+          {activeProfile 
+            ? `Profil actif: ${activeProfile.prenom}` 
+            : "Aucun profil sélectionné"
+          }
         </p>
       </div>
       

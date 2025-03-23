@@ -1,57 +1,51 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { UserProfile, NutrientType } from '@/lib/types';
 import { toast } from 'sonner';
-
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { UserProfile } from '@/lib/types';
 import { createProfil, updateProfil } from '@/services/profilsService';
+import { useNavigate } from 'react-router-dom';
+import { useProfile } from '@/contexts/ProfileContext';
 
-const profileFormSchema = z.object({
-  prenom: z.string().min(2, { message: 'Le prénom doit avoir au moins 2 caractères' }),
-  sexe: z.enum(['Homme', 'Femme', 'Autre'], { message: 'Veuillez sélectionner un sexe' }),
-  poids: z.coerce.number().min(30, { message: 'Le poids doit être d\'au moins 30kg' }).max(250, { message: 'Le poids doit être de moins de 250kg' }),
-  objectifs: z.object({
-    glucides: z.coerce.number().min(0),
-    proteines: z.coerce.number().min(0),
-    lipides: z.coerce.number().min(0),
-    fibres: z.coerce.number().min(0),
-    vitamine_c: z.coerce.number().min(0),
-    vitamine_d: z.coerce.number().min(0),
-    fer: z.coerce.number().min(0),
-    calcium: z.coerce.number().min(0),
-    magnesium: z.coerce.number().min(0),
-    omega_3_total: z.coerce.number().min(0),
+const formSchema = z.object({
+  prenom: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  sexe: z.enum(["Homme", "Femme", "Autre"], {
+    errorMap: () => ({ message: "Veuillez sélectionner un sexe" }),
   }),
+  poids: z.coerce.number().positive("Le poids doit être positif"),
+  glucides: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  proteines: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  lipides: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  fibres: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  vitamine_c: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  vitamine_d: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  fer: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  calcium: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  magnesium: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  omega_3_total: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type FormData = z.infer<typeof formSchema>;
 
-// Valeurs par défaut basées sur des recommandations générales
-const defaultValues: ProfileFormValues = {
-  prenom: '',
-  sexe: 'Homme',
-  poids: 70,
-  objectifs: {
+type ProfileFormProps = {
+  initialData?: UserProfile;
+  isEditing?: boolean;
+};
+
+export const ProfileForm = ({ initialData, isEditing = false }: ProfileFormProps) => {
+  const navigate = useNavigate();
+  const { refreshProfiles, setActiveProfileId } = useProfile();
+  
+  const defaultValues: FormData = {
+    prenom: "",
+    sexe: "Homme",
+    poids: 70,
     glucides: 250,
     proteines: 75,
     lipides: 60,
@@ -62,298 +56,217 @@ const defaultValues: ProfileFormValues = {
     calcium: 1000,
     magnesium: 400,
     omega_3_total: 1.6,
-  },
-};
-
-interface ProfileFormProps {
-  onSuccess?: (profile: UserProfile) => void;
-  initialData?: UserProfile;
-  isEditing?: boolean;
-}
-
-export function ProfileForm({ onSuccess, initialData, isEditing = false }: ProfileFormProps) {
-  const navigate = useNavigate();
+  };
   
-  // Préparer les valeurs initiales en cas d'édition
-  const formInitialValues = initialData 
-    ? {
-        prenom: initialData.prenom,
-        sexe: initialData.sexe,
-        poids: initialData.poids,
-        objectifs: initialData.objectifs
-      } 
-    : defaultValues;
-  
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: formInitialValues,
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: initialData ? {
+      prenom: initialData.prenom,
+      sexe: initialData.sexe,
+      poids: initialData.poids,
+      glucides: initialData.objectifs.glucides,
+      proteines: initialData.objectifs.proteines,
+      lipides: initialData.objectifs.lipides,
+      fibres: initialData.objectifs.fibres,
+      vitamine_c: initialData.objectifs.vitamine_c,
+      vitamine_d: initialData.objectifs.vitamine_d,
+      fer: initialData.objectifs.fer,
+      calcium: initialData.objectifs.calcium,
+      magnesium: initialData.objectifs.magnesium,
+      omega_3_total: initialData.objectifs.omega_3_total,
+    } : defaultValues,
   });
-
-  async function onSubmit(data: ProfileFormValues) {
+  
+  const onSubmit = async (data: FormData) => {
     try {
-      let profile: UserProfile;
+      // Créer un objet avec les objectifs nutritionnels
+      const objectifs: Record<NutrientType, number> = {
+        glucides: data.glucides,
+        proteines: data.proteines,
+        lipides: data.lipides,
+        fibres: data.fibres,
+        vitamine_c: data.vitamine_c,
+        vitamine_d: data.vitamine_d,
+        fer: data.fer,
+        calcium: data.calcium,
+        magnesium: data.magnesium,
+        omega_3_total: data.omega_3_total,
+      };
       
       if (isEditing && initialData) {
         // Mise à jour d'un profil existant
-        profile = await updateProfil({
+        const updatedProfile = await updateProfil({
           id: initialData.id,
           prenom: data.prenom,
           sexe: data.sexe,
           poids: data.poids,
-          objectifs: data.objectifs
+          objectifs,
         });
-        toast.success("Profil mis à jour avec succès!");
+        
+        toast.success("Profil mis à jour avec succès");
+        
+        // Rafraîchir la liste des profils pour mettre à jour l'UI
+        await refreshProfiles();
+        
+        // Rediriger vers la page des profils
+        navigate('/profil');
       } else {
         // Création d'un nouveau profil
-        profile = await createProfil({
+        const newProfile = await createProfil({
           prenom: data.prenom,
           sexe: data.sexe,
           poids: data.poids,
-          objectifs: data.objectifs
+          objectifs,
         });
-        toast.success("Profil créé avec succès!");
-      }
-      
-      if (onSuccess) {
-        onSuccess(profile);
-      } else {
+        
+        toast.success("Profil créé avec succès");
+        
+        // Rafraîchir la liste des profils et activer le nouveau profil
+        await refreshProfiles();
+        setActiveProfileId(newProfile.id);
+        
+        // Rediriger vers la page des profils
         navigate('/profil');
       }
     } catch (error) {
-      console.error(`Erreur lors de la ${isEditing ? 'mise à jour' : 'création'} du profil:`, error);
-      toast.error(`Erreur lors de la ${isEditing ? 'mise à jour' : 'création'} du profil`);
+      console.error('Erreur lors de la soumission du profil:', error);
+      toast.error("Une erreur est survenue lors de l'enregistrement du profil");
     }
-  }
-
+  };
+  
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        prenom: initialData.prenom,
+        sexe: initialData.sexe,
+        poids: initialData.poids,
+        glucides: initialData.objectifs.glucides,
+        proteines: initialData.objectifs.proteines,
+        lipides: initialData.objectifs.lipides,
+        fibres: initialData.objectifs.fibres,
+        vitamine_c: initialData.objectifs.vitamine_c,
+        vitamine_d: initialData.objectifs.vitamine_d,
+        fer: initialData.objectifs.fer,
+        calcium: initialData.objectifs.calcium,
+        magnesium: initialData.objectifs.magnesium,
+        omega_3_total: initialData.objectifs.omega_3_total,
+      });
+    }
+  }, [initialData, reset]);
+  
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="prenom">Prénom</Label>
+          <Input id="prenom" {...register("prenom")} />
+          {errors.prenom && <p className="text-sm text-red-500 mt-1">{errors.prenom.message}</p>}
+        </div>
+        
+        <div>
+          <Label>Sexe</Label>
+          <RadioGroup defaultValue="homme" className="flex space-x-4 mt-2">
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Homme" id="Homme" {...register("sexe")} />
+              <Label htmlFor="Homme">Homme</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Femme" id="Femme" {...register("sexe")} />
+              <Label htmlFor="Femme">Femme</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Autre" id="Autre" {...register("sexe")} />
+              <Label htmlFor="Autre">Autre</Label>
+            </div>
+          </RadioGroup>
+          {errors.sexe && <p className="text-sm text-red-500 mt-1">{errors.sexe.message}</p>}
+        </div>
+        
+        <div>
+          <Label htmlFor="poids">Poids (kg)</Label>
+          <Input id="poids" type="number" step="0.1" {...register("poids")} />
+          {errors.poids && <p className="text-sm text-red-500 mt-1">{errors.poids.message}</p>}
+        </div>
+      </div>
+      
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-medium mb-4">Objectifs nutritionnels quotidiens</h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <h3 className="text-lg font-medium">Informations personnelles</h3>
-            <p className="text-sm text-muted-foreground">
-              Vos informations de base pour personnaliser vos recommandations nutritionnelles.
-            </p>
+            <Label htmlFor="glucides">Glucides (g)</Label>
+            <Input id="glucides" type="number" step="1" {...register("glucides")} />
+            {errors.glucides && <p className="text-sm text-red-500 mt-1">{errors.glucides.message}</p>}
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="prenom"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prénom</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Votre prénom" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="sexe"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sexe</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionnez votre sexe" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Homme">Homme</SelectItem>
-                      <SelectItem value="Femme">Femme</SelectItem>
-                      <SelectItem value="Autre">Autre</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="poids"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Poids (kg)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="30"
-                      max="250"
-                      placeholder="70" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-medium">Objectifs nutritionnels (g/jour)</h3>
-            <p className="text-sm text-muted-foreground">
-              Définissez vos objectifs quotidiens pour chaque nutriment.
-            </p>
+            <Label htmlFor="proteines">Protéines (g)</Label>
+            <Input id="proteines" type="number" step="1" {...register("proteines")} />
+            {errors.proteines && <p className="text-sm text-red-500 mt-1">{errors.proteines.message}</p>}
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="objectifs.glucides"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Glucides (g)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.proteines"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Protéines (g)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.lipides"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Lipides (g)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.fibres"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fibres (g)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.vitamine_c"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vitamine C (mg)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.vitamine_d"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Vitamine D (μg)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.fer"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fer (mg)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.calcium"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Calcium (mg)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.magnesium"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Magnésium (mg)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="objectifs.omega_3_total"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Oméga-3 (g)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" step="0.1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div>
+            <Label htmlFor="lipides">Lipides (g)</Label>
+            <Input id="lipides" type="number" step="1" {...register("lipides")} />
+            {errors.lipides && <p className="text-sm text-red-500 mt-1">{errors.lipides.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="fibres">Fibres (g)</Label>
+            <Input id="fibres" type="number" step="1" {...register("fibres")} />
+            {errors.fibres && <p className="text-sm text-red-500 mt-1">{errors.fibres.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="vitamine_c">Vitamine C (mg)</Label>
+            <Input id="vitamine_c" type="number" step="1" {...register("vitamine_c")} />
+            {errors.vitamine_c && <p className="text-sm text-red-500 mt-1">{errors.vitamine_c.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="vitamine_d">Vitamine D (µg)</Label>
+            <Input id="vitamine_d" type="number" step="0.1" {...register("vitamine_d")} />
+            {errors.vitamine_d && <p className="text-sm text-red-500 mt-1">{errors.vitamine_d.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="fer">Fer (mg)</Label>
+            <Input id="fer" type="number" step="0.1" {...register("fer")} />
+            {errors.fer && <p className="text-sm text-red-500 mt-1">{errors.fer.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="calcium">Calcium (mg)</Label>
+            <Input id="calcium" type="number" step="1" {...register("calcium")} />
+            {errors.calcium && <p className="text-sm text-red-500 mt-1">{errors.calcium.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="magnesium">Magnésium (mg)</Label>
+            <Input id="magnesium" type="number" step="1" {...register("magnesium")} />
+            {errors.magnesium && <p className="text-sm text-red-500 mt-1">{errors.magnesium.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="omega_3_total">Oméga-3 (g)</Label>
+            <Input id="omega_3_total" type="number" step="0.1" {...register("omega_3_total")} />
+            {errors.omega_3_total && <p className="text-sm text-red-500 mt-1">{errors.omega_3_total.message}</p>}
           </div>
         </div>
-
-        <Button type="submit" className="w-full md:w-auto">
-          {isEditing ? "Mettre à jour le profil" : "Créer profil"}
+      </div>
+      
+      <div className="flex justify-end gap-4">
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => navigate('/profil')}
+        >
+          Annuler
         </Button>
-      </form>
-    </Form>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Enregistrement...' : isEditing ? 'Mettre à jour' : 'Créer mon profil'}
+        </Button>
+      </div>
+    </form>
   );
-}
+};

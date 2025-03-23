@@ -13,6 +13,8 @@ import CreateProfile from "./pages/CreateProfile";
 import EditProfile from "./pages/EditProfile";
 import AllFoods from "./pages/AllFoods";
 import Navbar from "./components/layout/Navbar";
+import { ProfileProvider } from "./contexts/ProfileContext";
+import ProfileSelection from "./pages/ProfileSelection";
 
 const queryClient = new QueryClient();
 
@@ -22,21 +24,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-          <Navbar />
-          <main className="flex-1 pt-2">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/aliment/:id" element={<FoodDetail />} />
-              <Route path="/assiette" element={<DailyPlate />} />
-              <Route path="/profil" element={<Profile />} />
-              <Route path="/profil/creer" element={<CreateProfile />} />
-              <Route path="/profil/modifier/:id" element={<EditProfile />} />
-              <Route path="/aliments" element={<AllFoods />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-        </div>
+        <ProfileProvider>
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Navbar />
+            <main className="flex-1 pt-2">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/aliment/:id" element={<FoodDetail />} />
+                <Route path="/assiette" element={<DailyPlate />} />
+                <Route path="/profil" element={<Profile />} />
+                <Route path="/profil/selection" element={<ProfileSelection />} />
+                <Route path="/profil/creer" element={<CreateProfile />} />
+                <Route path="/profil/modifier/:id" element={<EditProfile />} />
+                <Route path="/aliments" element={<AllFoods />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+          </div>
+        </ProfileProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

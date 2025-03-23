@@ -1,48 +1,28 @@
 
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserProfile } from '@/lib/types';
-import { fetchProfils } from '@/services/profilsService';
-import { PlusIcon, Pencil } from 'lucide-react';
+import { PlusIcon, Pencil, UserIcon } from 'lucide-react';
+import { useProfile } from '@/contexts/ProfileContext';
+import { toast } from 'sonner';
 
 const Profile = () => {
-  const [profiles, setProfiles] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { profiles, loading, refreshProfiles, activeProfileId, setActiveProfileId } = useProfile();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const loadProfiles = async () => {
-      try {
-        const data = await fetchProfils();
-        setProfiles(data);
-      } catch (err) {
-        console.error('Erreur lors du chargement des profils:', err);
-        setError('Impossible de charger les profils. Veuillez réessayer plus tard.');
-      } finally {
-        setLoading(false);
-      }
-    };
+    refreshProfiles();
+  }, [refreshProfiles]);
 
-    loadProfiles();
-  }, []);
+  const handleSelectProfile = (id: string) => {
+    setActiveProfileId(id);
+    toast.success("Profil activé avec succès");
+  };
 
   if (loading) {
     return (
       <div className="container mx-auto py-16 text-center">
         <p>Chargement des profils...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto py-16">
-        <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Erreur</h2>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <Button onClick={() => window.location.reload()}>Réessayer</Button>
-        </div>
       </div>
     );
   }
@@ -79,14 +59,35 @@ const Profile = () => {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {profiles.map((profile) => (
-          <div key={profile.id} className="bg-white rounded-xl shadow-sm border p-6">
+          <div 
+            key={profile.id} 
+            className={`bg-white rounded-xl shadow-sm border p-6 ${
+              activeProfileId === profile.id ? 'ring-2 ring-nutri-green-500 ring-offset-2' : ''
+            }`}
+          >
             <div className="flex justify-between items-start mb-2">
               <h2 className="text-xl font-semibold">{profile.prenom}</h2>
-              <Link to={`/profil/modifier/${profile.id}`}>
-                <Button variant="ghost" size="icon">
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              </Link>
+              <div className="flex space-x-2">
+                {activeProfileId === profile.id ? (
+                  <div className="bg-nutri-green-100 text-nutri-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                    Actif
+                  </div>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleSelectProfile(profile.id)}
+                  >
+                    <UserIcon className="h-4 w-4 mr-1" />
+                    Activer
+                  </Button>
+                )}
+                <Link to={`/profil/modifier/${profile.id}`}>
+                  <Button variant="ghost" size="icon">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mb-4">
               <div className="text-sm">

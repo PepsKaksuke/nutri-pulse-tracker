@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, PlusCircle, CheckCircle } from 'lucide-react';
@@ -12,6 +11,7 @@ import {
   addAlimentSelectionne, 
   removeAlimentSelectionne 
 } from '@/services/alimentsSelectionnesService';
+import { useProfile } from '@/contexts/ProfileContext';
 
 const FoodDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +20,8 @@ const FoodDetail = () => {
   const [isSelected, setIsSelected] = useState(false);
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
   const [loading, setLoading] = useState(true);
-  const [profilId, setProfilId] = useState<string>("1"); // Profil par défaut pour le moment
+  
+  const { activeProfileId } = useProfile();
 
   useEffect(() => {
     const loadData = async () => {
@@ -34,16 +35,18 @@ const FoodDetail = () => {
         if (foodData) {
           setFood(foodData);
           
-          // Récupérer les aliments sélectionnés
-          const selected = await fetchAlimentsSelectionnes(profilId);
-          setSelectedFoods(selected);
-          
-          // Vérifier si cet aliment est déjà sélectionné aujourd'hui
-          const today = new Date().toISOString().split('T')[0];
-          const alreadySelected = selected.some(sf => 
-            sf.aliment_id === foodData.id && sf.date_selection === today
-          );
-          setIsSelected(alreadySelected);
+          if (activeProfileId) {
+            // Récupérer les aliments sélectionnés
+            const selected = await fetchAlimentsSelectionnes(activeProfileId);
+            setSelectedFoods(selected);
+            
+            // Vérifier si cet aliment est déjà sélectionné aujourd'hui
+            const today = new Date().toISOString().split('T')[0];
+            const alreadySelected = selected.some(sf => 
+              sf.aliment_id === foodData.id && sf.date_selection === today
+            );
+            setIsSelected(alreadySelected);
+          }
         }
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
@@ -54,7 +57,7 @@ const FoodDetail = () => {
     };
     
     loadData();
-  }, [id, profilId]);
+  }, [id, activeProfileId]);
 
   useEffect(() => {
     if (!loading && !food) {
@@ -66,11 +69,17 @@ const FoodDetail = () => {
   const toggleSelection = async () => {
     if (!food) return;
     
+    if (!activeProfileId) {
+      toast.error("Veuillez sélectionner un profil pour ajouter des aliments");
+      navigate('/profil/selection');
+      return;
+    }
+    
     const today = new Date().toISOString().split('T')[0];
     
     try {
       if (isSelected) {
-        await removeAlimentSelectionne(profilId, food.id, today);
+        await removeAlimentSelectionne(activeProfileId, food.id, today);
         const updatedSelection = selectedFoods.filter(sf => 
           !(sf.aliment_id === food.id && sf.date_selection === today)
         );
@@ -78,7 +87,7 @@ const FoodDetail = () => {
         setIsSelected(false);
         toast.success(`${food.nom} retiré de votre assiette`);
       } else {
-        const newSelectedFood = await addAlimentSelectionne(profilId, food.id, today);
+        const newSelectedFood = await addAlimentSelectionne(activeProfileId, food.id, today);
         setSelectedFoods([...selectedFoods, newSelectedFood]);
         setIsSelected(true);
         toast.success(`${food.nom} ajouté à votre assiette`);

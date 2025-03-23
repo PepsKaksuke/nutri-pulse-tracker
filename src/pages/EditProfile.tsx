@@ -5,12 +5,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { fetchProfilById } from '@/services/profilsService';
 import { UserProfile } from '@/lib/types';
 import { toast } from 'sonner';
+import { useProfile } from '@/contexts/ProfileContext';
 
 const EditProfile = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const { refreshProfiles } = useProfile();
   
   useEffect(() => {
     const loadProfile = async () => {
@@ -29,6 +31,9 @@ const EditProfile = () => {
         }
         
         setProfile(profileData);
+        
+        // Rafraîchir les profils dans le contexte pour s'assurer que la liste est à jour
+        refreshProfiles();
       } catch (error) {
         console.error("Erreur lors du chargement du profil:", error);
         toast.error("Erreur lors du chargement du profil");
@@ -39,7 +44,7 @@ const EditProfile = () => {
     };
     
     loadProfile();
-  }, [id, navigate]);
+  }, [id, navigate, refreshProfiles]);
   
   if (loading) {
     return (
