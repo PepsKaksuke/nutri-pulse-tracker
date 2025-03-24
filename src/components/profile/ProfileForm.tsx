@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -43,6 +44,7 @@ export const ProfileForm = ({ initialData, isEditing = false, onSuccess }: Profi
       calcium: initialData.objectifs.calcium,
       magnesium: initialData.objectifs.magnesium,
       omega_3_total: initialData.objectifs.omega_3_total,
+      zinc: initialData.objectifs.zinc,
     } : defaultFormValues,
   });
   
@@ -123,9 +125,10 @@ export const ProfileForm = ({ initialData, isEditing = false, onSuccess }: Profi
         calcium: initialData.objectifs.calcium,
         magnesium: initialData.objectifs.magnesium,
         omega_3_total: initialData.objectifs.omega_3_total,
+        zinc: initialData.objectifs.zinc,
       });
     }
-  }, [initialData, form.reset]);
+  }, [initialData, form]);
   
   return (
     <Form {...form}>

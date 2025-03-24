@@ -29,7 +29,7 @@ export async function fetchProfils(): Promise<UserProfile[]> {
       calcium: Number(profil.calcium),
       magnesium: Number(profil.magnesium),
       omega_3_total: Number(profil.omega_3_total),
-      zinc: Number(profil.zinc || 0) // Add zinc with a default of 0 if not present
+      zinc: Number(profil.zinc || 0) // Handle the case where zinc might not exist
     }
   }));
 }
@@ -65,7 +65,7 @@ export async function fetchProfilById(id: string): Promise<UserProfile | null> {
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
       omega_3_total: Number(data.omega_3_total),
-      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
+      zinc: Number(data.zinc || 0) // Handle the case where zinc might not exist
     }
   };
 }
@@ -115,7 +115,7 @@ export async function updateProfil(profil: UserProfile): Promise<UserProfile> {
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
       omega_3_total: Number(data.omega_3_total),
-      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
+      zinc: Number(data.zinc || 0) // Handle the case where zinc might not exist
     }
   };
 }
@@ -164,7 +164,7 @@ export async function createProfil(profil: Omit<UserProfile, 'id'>): Promise<Use
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
       omega_3_total: Number(data.omega_3_total),
-      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
+      zinc: Number(data.zinc || 0) // Handle the case where zinc might not exist
     }
   };
 }
