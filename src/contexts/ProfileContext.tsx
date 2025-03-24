@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchProfils } from '@/services/profilsService';
 import { UserProfile } from '@/lib/types';
 import { toast } from 'sonner';
@@ -24,7 +24,9 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [lastErrorTime, setLastErrorTime] = useState(0);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const refreshProfiles = async () => {
     try {
@@ -71,18 +73,26 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
             // If stored profile doesn't exist, clear the invalid ID
             localStorage.removeItem('activeProfileId');
             
-            // If there are profiles, redirect to profile selection
-            if (profilesData.length > 0) {
-              navigate('/profil');
-            } else {
-              navigate('/profil/creer');
+            // Only redirect if we're not already on a profile-related page
+            const isProfilePage = location.pathname.includes('/profil');
+            
+            if (!isProfilePage) {
+              // If there are profiles, redirect to profile selection
+              if (profilesData.length > 0) {
+                navigate('/profil');
+              } else {
+                navigate('/profil/creer');
+              }
             }
           }
         } else if (profilesData.length === 0) {
-          // If no profiles exist, redirect to create profile
-          navigate('/profil/creer');
-        } else {
-          // If no stored profile but profiles exist, redirect to profile selection
+          // Only redirect to create profile if we're not already there
+          const isCreateProfilePage = location.pathname === '/profil/creer';
+          if (!isCreateProfilePage) {
+            navigate('/profil/creer');
+          }
+        } else if (!location.pathname.includes('/profil')) {
+          // Only redirect to profile selection if we're not on any profile-related page
           navigate('/profil');
         }
       } catch (error) {
@@ -90,11 +100,14 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setError(true);
       } finally {
         setLoading(false);
+        setInitialLoadComplete(true);
       }
     };
 
-    loadData();
-  }, [navigate]);
+    if (!initialLoadComplete) {
+      loadData();
+    }
+  }, [navigate, location.pathname, initialLoadComplete]);
 
   // Update active profile when activeProfileId changes
   useEffect(() => {
