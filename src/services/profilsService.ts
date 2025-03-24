@@ -28,7 +28,8 @@ export async function fetchProfils(): Promise<UserProfile[]> {
       fer: Number(profil.fer),
       calcium: Number(profil.calcium),
       magnesium: Number(profil.magnesium),
-      omega_3_total: Number(profil.omega_3_total)
+      omega_3_total: Number(profil.omega_3_total),
+      zinc: Number(profil.zinc || 0) // Add zinc with a default of 0 if not present
     }
   }));
 }
@@ -63,7 +64,8 @@ export async function fetchProfilById(id: string): Promise<UserProfile | null> {
       fer: Number(data.fer),
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
-      omega_3_total: Number(data.omega_3_total)
+      omega_3_total: Number(data.omega_3_total),
+      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
     }
   };
 }
@@ -84,7 +86,8 @@ export async function updateProfil(profil: UserProfile): Promise<UserProfile> {
       fer: profil.objectifs.fer,
       calcium: profil.objectifs.calcium,
       magnesium: profil.objectifs.magnesium,
-      omega_3_total: profil.objectifs.omega_3_total
+      omega_3_total: profil.objectifs.omega_3_total,
+      zinc: profil.objectifs.zinc
     })
     .eq('id', profil.id)
     .select()
@@ -111,7 +114,8 @@ export async function updateProfil(profil: UserProfile): Promise<UserProfile> {
       fer: Number(data.fer),
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
-      omega_3_total: Number(data.omega_3_total)
+      omega_3_total: Number(data.omega_3_total),
+      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
     }
   };
 }
@@ -132,7 +136,8 @@ export async function createProfil(profil: Omit<UserProfile, 'id'>): Promise<Use
       fer: profil.objectifs.fer,
       calcium: profil.objectifs.calcium,
       magnesium: profil.objectifs.magnesium,
-      omega_3_total: profil.objectifs.omega_3_total
+      omega_3_total: profil.objectifs.omega_3_total,
+      zinc: profil.objectifs.zinc
     })
     .select()
     .single();
@@ -158,7 +163,8 @@ export async function createProfil(profil: Omit<UserProfile, 'id'>): Promise<Use
       fer: Number(data.fer),
       calcium: Number(data.calcium),
       magnesium: Number(data.magnesium),
-      omega_3_total: Number(data.omega_3_total)
+      omega_3_total: Number(data.omega_3_total),
+      zinc: Number(data.zinc || 0) // Add zinc with a default of 0 if not present
     }
   };
 }

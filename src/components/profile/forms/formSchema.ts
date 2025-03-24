@@ -19,6 +19,7 @@ export const profileFormSchema = z.object({
   calcium: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
   magnesium: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
   omega_3_total: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
+  zinc: z.coerce.number().nonnegative("La valeur doit être positive ou nulle"),
 });
 
 export type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -38,6 +39,7 @@ export const defaultFormValues: ProfileFormData = {
   calcium: 1000,
   magnesium: 400,
   omega_3_total: 1.6,
+  zinc: 11,
 };
 
 // Helper function to extract profile data from form data
@@ -53,5 +55,6 @@ export const createObjectifsFromFormData = (data: ProfileFormData): Record<Nutri
     calcium: data.calcium,
     magnesium: data.magnesium,
     omega_3_total: data.omega_3_total,
+    zinc: data.zinc,
   };
 };

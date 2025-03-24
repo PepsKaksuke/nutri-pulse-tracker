@@ -1,4 +1,3 @@
-
 import { Food, UserProfile, SelectedFood, NutrientRecommendation } from "./types";
 
 // Données de test en attendant l'intégration de Supabase
@@ -212,7 +211,8 @@ export const dummyProfile: UserProfile = {
     fer: 8,
     calcium: 1000,
     magnesium: 400,
-    omega_3_total: 1.6
+    omega_3_total: 1.6,
+    zinc: 11
   }
 };
 
@@ -241,7 +241,8 @@ export const nutrientRecommendations: NutrientRecommendation[] = [
   { nutrient: "fer", label: "Fer", unit: "mg", daily: 8, color: "bg-red-600" },
   { nutrient: "calcium", label: "Calcium", unit: "mg", daily: 1000, color: "bg-gray-400" },
   { nutrient: "magnesium", label: "Magnésium", unit: "mg", daily: 400, color: "bg-purple-500" },
-  { nutrient: "omega_3_total", label: "Oméga-3", unit: "g", daily: 1.6, color: "bg-blue-400" }
+  { nutrient: "omega_3_total", label: "Oméga-3", unit: "g", daily: 1.6, color: "bg-blue-400" },
+  { nutrient: "zinc", label: "Zinc", unit: "mg", daily: 11, color: "bg-purple-500" }
 ];
 
 // Fonction utilitaire pour calculer la somme des apports quotidiens
