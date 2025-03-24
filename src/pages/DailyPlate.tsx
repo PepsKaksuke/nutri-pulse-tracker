@@ -7,6 +7,7 @@ import SearchFoodDialog from '@/components/daily-plate/SearchFoodDialog';
 import FoodsList from '@/components/daily-plate/FoodsList';
 import NutrientsSummary from '@/components/daily-plate/NutrientsSummary';
 import NutrientsModeSwitch, { NutrientMode } from '@/components/ui-custom/NutrientsModeSwitch';
+import { macroNutrients, microNutrients } from '@/lib/nutrientRecommendations';
 
 const DailyPlate = () => {
   const [nutrientMode, setNutrientMode] = useState<NutrientMode>('macro');
@@ -25,16 +26,8 @@ const DailyPlate = () => {
     clearPlate,
     getNutrientInfo
   } = useDailyPlate();
-
-  // Définir les nutriments à afficher en fonction du mode
-  const macroNutrients: NutrientType[] = [
-    'glucides', 'proteines', 'lipides', 'fibres', 'omega_3_total'
-  ];
   
-  const microNutrients: NutrientType[] = [
-    'vitamine_c', 'vitamine_d', 'fer', 'calcium', 'magnesium', 'zinc'
-  ];
-  
+  // Use the nutrient arrays from nutrientRecommendations.ts
   const nutrientsToShow = nutrientMode === 'macro' ? macroNutrients : microNutrients;
 
   if (loading) {

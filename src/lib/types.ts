@@ -68,7 +68,8 @@ export type NutrientType =
   | "fer" 
   | "calcium" 
   | "magnesium" 
-  | "omega_3_total";
+  | "omega_3_total"
+  | "zinc"; // Add zinc to the NutrientType
 
 export interface UserProfile {
   id: string;

@@ -11,6 +11,7 @@ interface FoodCardProps {
   food: Food;
   isSelected?: boolean;
   onSelect?: (food: Food) => void;
+  onClick?: () => void; // Add onClick prop
   className?: string;
   variant?: 'default' | 'compact' | 'list';
 }
@@ -19,6 +20,7 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   food,
   isSelected = false,
   onSelect,
+  onClick,
   className,
   variant = 'default'
 }) => {
@@ -33,10 +35,13 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   // Variante compacte (pour la liste A-Z et l'assiette du jour)
   if (variant === 'compact') {
     return (
-      <div className={cn(
-        "relative flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-all duration-300",
-        className
-      )}>
+      <div 
+        className={cn(
+          "relative flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-all duration-300",
+          className
+        )}
+        onClick={onClick} // Add onClick handler
+      >
         <img 
           src={food.image_url} 
           alt={food.nom} 
@@ -73,10 +78,13 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   // Variante liste (pour les résultats de recherche)
   if (variant === 'list') {
     return (
-      <div className={cn(
-        "relative flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-all duration-300",
-        className
-      )}>
+      <div 
+        className={cn(
+          "relative flex items-center gap-4 p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow transition-all duration-300",
+          className
+        )}
+        onClick={onClick} // Add onClick handler
+      >
         <img 
           src={food.image_url} 
           alt={food.nom} 
@@ -124,10 +132,13 @@ export const FoodCard: React.FC<FoodCardProps> = ({
   
   // Variante par défaut (carte standard)
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group",
-      className
-    )}>
+    <div 
+      className={cn(
+        "relative overflow-hidden rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group",
+        className
+      )}
+      onClick={onClick} // Add onClick handler
+    >
       {/* Image de l'aliment avec overlay gradient */}
       <div className="relative h-40 overflow-hidden">
         <img 
