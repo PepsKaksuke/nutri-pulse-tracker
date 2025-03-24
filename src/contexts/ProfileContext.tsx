@@ -11,7 +11,8 @@ type ProfileContextType = {
   setActiveProfileId: (id: string | null) => void;
   loading: boolean;
   profiles: UserProfile[];
-  refreshProfiles: () => Promise<UserProfile[]>; // Changed return type from void to UserProfile[]
+  refreshProfiles: () => Promise<UserProfile[]>;
+  error: boolean;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -21,16 +22,30 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [lastErrorTime, setLastErrorTime] = useState(0);
   const navigate = useNavigate();
 
   const refreshProfiles = async () => {
     try {
+      // Reset error state when attempting to refresh
+      setError(false);
       const data = await fetchProfils();
       setProfiles(data);
       return data;
     } catch (err) {
       console.error('Erreur lors du chargement des profils:', err);
-      toast.error('Impossible de charger les profils');
+      
+      // Set error state
+      setError(true);
+      
+      // Avoid showing too many toasts
+      const now = Date.now();
+      if (now - lastErrorTime > 5000) { // Only show toast every 5 seconds
+        toast.error('Impossible de charger les profils');
+        setLastErrorTime(now);
+      }
+      
       return [];
     }
   };
@@ -72,6 +87,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       } catch (error) {
         console.error('Erreur lors de l\'initialisation du contexte de profil:', error);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -101,6 +117,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loading,
         profiles,
         refreshProfiles,
+        error,
       }}
     >
       {children}

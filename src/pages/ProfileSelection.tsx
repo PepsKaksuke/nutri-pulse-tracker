@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '@/lib/types';
 import { useProfile } from '@/contexts/ProfileContext';
 import { Button } from '@/components/ui/button';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, RefreshCw } from 'lucide-react';
 
 const ProfileSelection = () => {
-  const { profiles, setActiveProfileId, loading, refreshProfiles } = useProfile();
+  const { profiles, setActiveProfileId, loading, refreshProfiles, error } = useProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +19,26 @@ const ProfileSelection = () => {
     setActiveProfileId(profile.id);
     navigate('/');
   };
+
+  const handleRefresh = async () => {
+    await refreshProfiles();
+  };
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-16">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border text-center">
+          <h2 className="text-2xl font-semibold mb-4">Problème de connexion</h2>
+          <p className="text-gray-600 mb-6">
+            Impossible de se connecter à la base de données. Veuillez vérifier votre connexion internet et réessayer.
+          </p>
+          <Button onClick={handleRefresh} className="w-full">
+            <RefreshCw className="mr-2 h-4 w-4" /> Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -2,23 +2,47 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, Pencil, UserIcon } from 'lucide-react';
+import { PlusIcon, Pencil, UserIcon, RefreshCw } from 'lucide-react';
 import { useProfile } from '@/contexts/ProfileContext';
 import { toast } from 'sonner';
 import NutrientGoalsList from '@/components/profile/NutrientGoalsList';
 
 const Profile = () => {
-  const { profiles, loading, refreshProfiles, activeProfileId, setActiveProfileId } = useProfile();
+  const { profiles, loading, refreshProfiles, activeProfileId, setActiveProfileId, error } = useProfile();
   const navigate = useNavigate();
 
   useEffect(() => {
-    refreshProfiles();
+    const initialLoad = async () => {
+      await refreshProfiles();
+    };
+    initialLoad();
   }, [refreshProfiles]);
 
   const handleSelectProfile = (id: string) => {
     setActiveProfileId(id);
     toast.success("Profil activé avec succès");
   };
+
+  const handleRefresh = async () => {
+    toast.info("Tentative de reconnexion...");
+    await refreshProfiles();
+  };
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-16">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-xl shadow-sm border text-center">
+          <h2 className="text-2xl font-semibold mb-4">Problème de connexion</h2>
+          <p className="text-gray-600 mb-6">
+            Impossible de se connecter à la base de données. Veuillez vérifier votre connexion internet et réessayer.
+          </p>
+          <Button onClick={handleRefresh} className="w-full">
+            <RefreshCw className="mr-2 h-4 w-4" /> Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
