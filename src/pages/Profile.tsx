@@ -1,14 +1,17 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PlusIcon, Pencil, UserIcon, RefreshCw } from 'lucide-react';
 import { useProfile } from '@/contexts/ProfileContext';
 import { toast } from 'sonner';
 import NutrientGoalsList from '@/components/profile/NutrientGoalsList';
+import NutrientsModeSwitch, { NutrientMode } from '@/components/ui-custom/NutrientsModeSwitch';
+import { NutrientType } from '@/lib/types';
 
 const Profile = () => {
   const { profiles, loading, refreshProfiles, activeProfileId, setActiveProfileId, error } = useProfile();
+  const [nutrientMode, setNutrientMode] = useState<NutrientMode>('macro');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +30,15 @@ const Profile = () => {
     toast.info("Tentative de reconnexion...");
     await refreshProfiles();
   };
+
+  // Définir les nutriments à afficher en fonction du mode
+  const macroNutrients: NutrientType[] = [
+    'glucides', 'proteines', 'lipides', 'fibres', 'omega_3_total'
+  ];
+  
+  const microNutrients: NutrientType[] = [
+    'vitamine_c', 'vitamine_d', 'fer', 'calcium', 'magnesium'
+  ];
 
   if (error) {
     return (
@@ -75,11 +87,17 @@ const Profile = () => {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Vos profils</h1>
-        <Link to="/profil/creer">
-          <Button>
-            <PlusIcon className="mr-2 h-4 w-4" /> Nouveau profil
-          </Button>
-        </Link>
+        <div className="flex items-center gap-4">
+          <NutrientsModeSwitch 
+            mode={nutrientMode} 
+            onChange={setNutrientMode}
+          />
+          <Link to="/profil/creer">
+            <Button>
+              <PlusIcon className="mr-2 h-4 w-4" /> Nouveau profil
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -126,7 +144,11 @@ const Profile = () => {
             <h3 className="font-medium text-sm text-gray-500 mb-2">Objectifs quotidiens:</h3>
             
             {/* Afficher les objectifs nutritionnels avec les barres de progression */}
-            <NutrientGoalsList profile={profile} className="mt-4" />
+            <NutrientGoalsList 
+              profile={profile} 
+              className="mt-4" 
+              nutrientsToShow={nutrientMode === 'macro' ? macroNutrients : microNutrients}
+            />
           </div>
         ))}
       </div>

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, PlusCircle, CheckCircle } from 'lucide-react';
@@ -119,6 +120,20 @@ const FoodDetail = () => {
 
   const omega3Total = food.omega_3_epa + food.omega_3_dha + food.omega_3_ala;
 
+  // Vérifier s'il y a des macronutriments significatifs
+  const hasMacros = food.glucides > 0 || food.proteines > 0 || food.lipides > 0 || food.fibres > 0;
+  
+  // Vérifier s'il y a des micronutriments significatifs
+  const hasMicros = 
+    food.vitamine_c > 0 || food.vitamine_d > 0 || food.vitamine_b6 > 0 || 
+    food.vitamine_b9 > 0 || food.vitamine_b12 > 0 || food.fer > 0 || 
+    food.magnesium > 0 || food.zinc > 0 || food.calcium > 0 || food.selenium > 0;
+  
+  // Vérifier si des détails de lipides sont significatifs
+  const hasLipidDetails = 
+    food.lipides_satures > 0 || food.mono_insatures > 0 || food.poly_insatures > 0 || 
+    omega3Total > 0 || food.omega_6 > 0;
+
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">
       <div className="mb-4">
@@ -183,156 +198,226 @@ const FoodDetail = () => {
               <h2 className="text-lg font-medium">Composition nutritionnelle</h2>
             </div>
             <div className="p-5 space-y-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Macronutriments</h3>
-                
-                <div className="mb-4">
-                  <div className="w-full h-6 bg-gray-100 rounded-full overflow-hidden flex">
-                    <div 
-                      className="h-full bg-blue-400 flex items-center justify-center text-xs text-white"
-                      style={{ width: `${glucidesPercent}%` }}
-                    >
-                      {glucidesPercent}%
-                    </div>
-                    <div 
-                      className="h-full bg-red-400 flex items-center justify-center text-xs text-white"
-                      style={{ width: `${proteinesPercent}%` }}
-                    >
-                      {proteinesPercent}%
-                    </div>
-                    <div 
-                      className="h-full bg-yellow-400 flex items-center justify-center text-xs text-white"
-                      style={{ width: `${lipidesPercent}%` }}
-                    >
-                      {lipidesPercent}%
-                    </div>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-600 mt-1">
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
-                      <span>Glucides: {food.glucides}g</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
-                      <span>Protéines: {food.proteines}g</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                      <span>Lipides: {food.lipides}g</span>
-                    </div>
-                  </div>
+              {!hasMacros && !hasMicros ? (
+                <div className="text-center py-4 text-gray-500">
+                  Aucun nutriment significatif
                 </div>
-                
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium mb-2">Détail des lipides</h4>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+              ) : (
+                <>
+                  {hasMacros && (
                     <div>
-                      <p className="text-gray-500">Saturés</p>
-                      <p className="font-medium">{food.lipides_satures}g</p>
+                      <h3 className="text-sm font-medium text-gray-900 mb-3">Macronutriments</h3>
+                      
+                      {totalMacros > 0 && (
+                        <div className="mb-4">
+                          <div className="w-full h-6 bg-gray-100 rounded-full overflow-hidden flex">
+                            {glucidesPercent > 0 && (
+                              <div 
+                                className="h-full bg-blue-400 flex items-center justify-center text-xs text-white"
+                                style={{ width: `${glucidesPercent}%` }}
+                              >
+                                {glucidesPercent}%
+                              </div>
+                            )}
+                            {proteinesPercent > 0 && (
+                              <div 
+                                className="h-full bg-red-400 flex items-center justify-center text-xs text-white"
+                                style={{ width: `${proteinesPercent}%` }}
+                              >
+                                {proteinesPercent}%
+                              </div>
+                            )}
+                            {lipidesPercent > 0 && (
+                              <div 
+                                className="h-full bg-yellow-400 flex items-center justify-center text-xs text-white"
+                                style={{ width: `${lipidesPercent}%` }}
+                              >
+                                {lipidesPercent}%
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap justify-between text-xs text-gray-600 mt-1 gap-2">
+                            {food.glucides > 0 && (
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
+                                <span>Glucides: {food.glucides}g</span>
+                              </div>
+                            )}
+                            {food.proteines > 0 && (
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                                <span>Protéines: {food.proteines}g</span>
+                              </div>
+                            )}
+                            {food.lipides > 0 && (
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                                <span>Lipides: {food.lipides}g</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {hasLipidDetails && (
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="text-sm font-medium mb-2">Détail des lipides</h4>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                            {food.lipides_satures > 0 && (
+                              <div>
+                                <p className="text-gray-500">Saturés</p>
+                                <p className="font-medium">{food.lipides_satures}g</p>
+                              </div>
+                            )}
+                            {food.mono_insatures > 0 && (
+                              <div>
+                                <p className="text-gray-500">Mono-insaturés</p>
+                                <p className="font-medium">{food.mono_insatures}g</p>
+                              </div>
+                            )}
+                            {food.poly_insatures > 0 && (
+                              <div>
+                                <p className="text-gray-500">Poly-insaturés</p>
+                                <p className="font-medium">{food.poly_insatures}g</p>
+                              </div>
+                            )}
+                            {food.ratio_omega3_omega6 > 0 && (
+                              <div>
+                                <p className="text-gray-500">Ratio Ω-3/Ω-6</p>
+                                <p className="font-medium">{food.ratio_omega3_omega6}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
+                  )}
+                  
+                  {omega3Total > 0 && (
                     <div>
-                      <p className="text-gray-500">Mono-insaturés</p>
-                      <p className="font-medium">{food.mono_insatures}g</p>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">Acides gras Oméga-3</h3>
+                      <div className="bg-blue-50 p-4 rounded-lg">
+                        <div className="grid grid-cols-3 gap-3 text-sm">
+                          {food.omega_3_epa > 0 && (
+                            <div>
+                              <p className="text-gray-500">EPA</p>
+                              <p className="font-medium">{food.omega_3_epa}g</p>
+                            </div>
+                          )}
+                          {food.omega_3_dha > 0 && (
+                            <div>
+                              <p className="text-gray-500">DHA</p>
+                              <p className="font-medium">{food.omega_3_dha}g</p>
+                            </div>
+                          )}
+                          {food.omega_3_ala > 0 && (
+                            <div>
+                              <p className="text-gray-500">ALA</p>
+                              <p className="font-medium">{food.omega_3_ala}g</p>
+                            </div>
+                          )}
+                        </div>
+                        {omega3Total > 0 && (
+                          <div className="mt-2 pt-2 border-t border-blue-100">
+                            <div className="flex justify-between items-center">
+                              <p className="text-gray-500 text-sm">Total Oméga-3</p>
+                              <p className="font-medium text-sm">{omega3Total.toFixed(2)}g</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  )}
+                  
+                  {food.fibres > 0 && (
                     <div>
-                      <p className="text-gray-500">Poly-insaturés</p>
-                      <p className="font-medium">{food.poly_insatures}g</p>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">Fibres</h3>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex justify-between items-center">
+                          <p className="text-gray-500">Fibres alimentaires</p>
+                          <p className="font-medium">{food.fibres}g</p>
+                        </div>
+                      </div>
                     </div>
+                  )}
+                  
+                  {food.vitamine_c > 0 || food.vitamine_d > 0 || food.vitamine_b6 > 0 || food.vitamine_b9 > 0 || food.vitamine_b12 > 0 ? (
                     <div>
-                      <p className="text-gray-500">Ratio Ω-3/Ω-6</p>
-                      <p className="font-medium">{food.ratio_omega3_omega6}</p>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">Vitamines</h3>
+                      <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
+                        {food.vitamine_c > 0 && (
+                          <div>
+                            <p className="text-gray-500">Vitamine C</p>
+                            <p className="font-medium">{food.vitamine_c}mg</p>
+                          </div>
+                        )}
+                        {food.vitamine_d > 0 && (
+                          <div>
+                            <p className="text-gray-500">Vitamine D</p>
+                            <p className="font-medium">{food.vitamine_d}µg</p>
+                          </div>
+                        )}
+                        {food.vitamine_b6 > 0 && (
+                          <div>
+                            <p className="text-gray-500">Vitamine B6</p>
+                            <p className="font-medium">{food.vitamine_b6}mg</p>
+                          </div>
+                        )}
+                        {food.vitamine_b9 > 0 && (
+                          <div>
+                            <p className="text-gray-500">Vitamine B9 (Folate)</p>
+                            <p className="font-medium">{food.vitamine_b9}µg</p>
+                          </div>
+                        )}
+                        {food.vitamine_b12 > 0 && (
+                          <div>
+                            <p className="text-gray-500">Vitamine B12</p>
+                            <p className="font-medium">{food.vitamine_b12}µg</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Acides gras Oméga-3</h3>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="grid grid-cols-3 gap-3 text-sm">
+                  ) : null}
+                  
+                  {food.fer > 0 || food.calcium > 0 || food.magnesium > 0 || food.zinc > 0 || food.selenium > 0 ? (
                     <div>
-                      <p className="text-gray-500">EPA</p>
-                      <p className="font-medium">{food.omega_3_epa}g</p>
+                      <h3 className="text-sm font-medium text-gray-900 mb-2">Minéraux</h3>
+                      <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
+                        {food.fer > 0 && (
+                          <div>
+                            <p className="text-gray-500">Fer</p>
+                            <p className="font-medium">{food.fer}mg</p>
+                          </div>
+                        )}
+                        {food.calcium > 0 && (
+                          <div>
+                            <p className="text-gray-500">Calcium</p>
+                            <p className="font-medium">{food.calcium}mg</p>
+                          </div>
+                        )}
+                        {food.magnesium > 0 && (
+                          <div>
+                            <p className="text-gray-500">Magnésium</p>
+                            <p className="font-medium">{food.magnesium}mg</p>
+                          </div>
+                        )}
+                        {food.zinc > 0 && (
+                          <div>
+                            <p className="text-gray-500">Zinc</p>
+                            <p className="font-medium">{food.zinc}mg</p>
+                          </div>
+                        )}
+                        {food.selenium > 0 && (
+                          <div>
+                            <p className="text-gray-500">Sélénium</p>
+                            <p className="font-medium">{food.selenium}µg</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-gray-500">DHA</p>
-                      <p className="font-medium">{food.omega_3_dha}g</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-500">ALA</p>
-                      <p className="font-medium">{food.omega_3_ala}g</p>
-                    </div>
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-blue-100">
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-500 text-sm">Total Oméga-3</p>
-                      <p className="font-medium text-sm">{omega3Total.toFixed(2)}g</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Fibres</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-500">Fibres alimentaires</p>
-                    <p className="font-medium">{food.fibres}g</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Vitamines</h3>
-                <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-gray-500">Vitamine C</p>
-                    <p className="font-medium">{food.vitamine_c}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vitamine D</p>
-                    <p className="font-medium">{food.vitamine_d}µg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vitamine B6</p>
-                    <p className="font-medium">{food.vitamine_b6}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vitamine B9 (Folate)</p>
-                    <p className="font-medium">{food.vitamine_b9}µg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Vitamine B12</p>
-                    <p className="font-medium">{food.vitamine_b12}µg</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-2">Minéraux</h3>
-                <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-lg">
-                  <div>
-                    <p className="text-gray-500">Fer</p>
-                    <p className="font-medium">{food.fer}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Calcium</p>
-                    <p className="font-medium">{food.calcium}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Magnésium</p>
-                    <p className="font-medium">{food.magnesium}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Zinc</p>
-                    <p className="font-medium">{food.zinc}mg</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Sélénium</p>
-                    <p className="font-medium">{food.selenium}µg</p>
-                  </div>
-                </div>
-              </div>
+                  ) : null}
+                </>
+              )}
               
               {food.composes_bioactifs.length > 0 && (
                 <div>

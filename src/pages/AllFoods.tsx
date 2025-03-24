@@ -14,8 +14,9 @@ import { useNavigate } from 'react-router-dom';
 
 const AllFoods = () => {
   const [selectedFoods, setSelectedFoods] = useState<SelectedFood[]>([]);
-  const [selectedLetter, setSelectedLetter] = useState('A');
+  const [selectedLetter, setSelectedLetter] = useState('ALL');
   const [foodsByLetter, setFoodsByLetter] = useState<Record<string, Food[]>>({});
+  const [allFoods, setAllFoods] = useState<Food[]>([]);
   const [availableLetters, setAvailableLetters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -28,13 +29,14 @@ const AllFoods = () => {
         setLoading(true);
         
         // Récupérer tous les aliments
-        const allFoods = await fetchAliments();
+        const allFoodsData = await fetchAliments();
+        setAllFoods(allFoodsData);
         
         // Grouper les aliments par première lettre
         const groupedFoods: Record<string, Food[]> = {};
         const letters: Set<string> = new Set();
         
-        allFoods.forEach(food => {
+        allFoodsData.forEach(food => {
           const firstLetter = food.nom.charAt(0).toUpperCase();
           if (!groupedFoods[firstLetter]) {
             groupedFoods[firstLetter] = [];
@@ -48,7 +50,8 @@ const AllFoods = () => {
         const sortedLetters = Array.from(letters).sort();
         setAvailableLetters(sortedLetters);
         
-        if (sortedLetters.length > 0 && !sortedLetters.includes(selectedLetter)) {
+        // Par défaut, on montre tous les aliments
+        if (sortedLetters.length > 0 && selectedLetter !== 'ALL' && !sortedLetters.includes(selectedLetter)) {
           setSelectedLetter(sortedLetters[0]);
         }
         
@@ -66,7 +69,7 @@ const AllFoods = () => {
     };
     
     loadData();
-  }, [activeProfileId, selectedLetter]);
+  }, [activeProfileId]);
   
   const alphabet = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65 + i));
   
@@ -111,6 +114,11 @@ const AllFoods = () => {
       toast.error('Erreur lors de la mise à jour de votre assiette');
     }
   };
+  
+  // Fonction pour naviguer vers la page de détail d'un aliment
+  const navigateToFoodDetail = (foodId: string) => {
+    navigate(`/aliment/${foodId}`);
+  };
 
   if (loading) {
     return (
@@ -121,6 +129,9 @@ const AllFoods = () => {
       </div>
     );
   }
+
+  // Déterminer quels aliments afficher en fonction de la sélection (ALL ou une lettre)
+  const foodsToDisplay = selectedLetter === 'ALL' ? allFoods : foodsByLetter[selectedLetter] || [];
 
   return (
     <div className="container mx-auto px-4 pb-24 md:pb-10 pt-6 animate-fade-in">
@@ -134,6 +145,17 @@ const AllFoods = () => {
       <div className="sticky top-16 z-10 bg-white border-b border-gray-100 shadow-sm mb-6">
         <div className="container mx-auto px-4 py-3 overflow-x-auto">
           <div className="flex justify-center md:justify-start space-x-1 md:space-x-2">
+            <button
+              onClick={() => setSelectedLetter('ALL')}
+              className={`px-3 h-8 flex items-center justify-center rounded-full text-sm font-medium transition-colors ${
+                selectedLetter === 'ALL'
+                  ? 'bg-nutri-green-500 text-white'
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              Tous
+            </button>
+            
             {alphabet.map(letter => {
               const isAvailable = availableLetters.includes(letter);
               const isActive = selectedLetter === letter;
@@ -160,28 +182,27 @@ const AllFoods = () => {
       </div>
       
       <div>
-        {Object.keys(foodsByLetter).length === 0 ? (
+        {foodsToDisplay.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500">Aucun aliment disponible pour le moment.</p>
-          </div>
-        ) : !foodsByLetter[selectedLetter] || foodsByLetter[selectedLetter].length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Aucun aliment commençant par la lettre {selectedLetter}.</p>
           </div>
         ) : (
           <>
             <h2 className="text-xl font-medium mb-4">
-              Aliments commençant par {selectedLetter} <span className="text-gray-500">({foodsByLetter[selectedLetter]?.length || 0})</span>
+              {selectedLetter === 'ALL' 
+                ? `Tous les aliments (${foodsToDisplay.length})` 
+                : `Aliments commençant par ${selectedLetter} (${foodsToDisplay.length})`}
             </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {foodsByLetter[selectedLetter]?.map(food => (
+              {foodsToDisplay.map(food => (
                 <FoodCard
                   key={food.id}
                   food={food}
                   variant="compact"
                   isSelected={isSelected(food.id)}
                   onSelect={handleSelectFood}
+                  onClick={() => navigateToFoodDetail(food.id)}
                 />
               ))}
             </div>

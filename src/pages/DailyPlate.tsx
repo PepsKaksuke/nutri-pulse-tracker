@@ -1,13 +1,16 @@
 
-import React from 'react';
-import { Search, Trash2, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Trash2 } from 'lucide-react';
 import { NutrientType } from '@/lib/types';
 import { useDailyPlate } from '@/hooks/useDailyPlate';
 import SearchFoodDialog from '@/components/daily-plate/SearchFoodDialog';
 import FoodsList from '@/components/daily-plate/FoodsList';
 import NutrientsSummary from '@/components/daily-plate/NutrientsSummary';
+import NutrientsModeSwitch, { NutrientMode } from '@/components/ui-custom/NutrientsModeSwitch';
 
 const DailyPlate = () => {
+  const [nutrientMode, setNutrientMode] = useState<NutrientMode>('macro');
+  
   const {
     todayFoods,
     searchOpen,
@@ -23,11 +26,16 @@ const DailyPlate = () => {
     getNutrientInfo
   } = useDailyPlate();
 
-  const nutrientsToShow: NutrientType[] = [
-    'glucides', 'proteines', 'lipides', 'fibres', 
-    'vitamine_c', 'vitamine_d', 'fer', 'calcium', 
-    'magnesium', 'omega_3_total'
+  // Définir les nutriments à afficher en fonction du mode
+  const macroNutrients: NutrientType[] = [
+    'glucides', 'proteines', 'lipides', 'fibres', 'omega_3_total'
   ];
+  
+  const microNutrients: NutrientType[] = [
+    'vitamine_c', 'vitamine_d', 'fer', 'calcium', 'magnesium', 'zinc'
+  ];
+  
+  const nutrientsToShow = nutrientMode === 'macro' ? macroNutrients : microNutrients;
 
   if (loading) {
     return (
@@ -95,10 +103,20 @@ const DailyPlate = () => {
           />
         </div>
         
-        <NutrientsSummary 
-          nutrientsToShow={nutrientsToShow}
-          getNutrientInfo={getNutrientInfo}
-        />
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-medium">Mes apports du jour</h2>
+            <NutrientsModeSwitch 
+              mode={nutrientMode} 
+              onChange={setNutrientMode}
+            />
+          </div>
+          
+          <NutrientsSummary 
+            nutrientsToShow={nutrientsToShow}
+            getNutrientInfo={getNutrientInfo}
+          />
+        </div>
       </div>
     </div>
   );
