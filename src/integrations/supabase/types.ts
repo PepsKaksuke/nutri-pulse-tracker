@@ -160,6 +160,7 @@ export type Database = {
           sexe: string
           vitamine_c: number
           vitamine_d: number
+          zinc: number
         }
         Insert: {
           calcium?: number
@@ -176,6 +177,7 @@ export type Database = {
           sexe: string
           vitamine_c?: number
           vitamine_d?: number
+          zinc?: number
         }
         Update: {
           calcium?: number
@@ -192,6 +194,7 @@ export type Database = {
           sexe?: string
           vitamine_c?: number
           vitamine_d?: number
+          zinc?: number
         }
         Relationships: []
       }

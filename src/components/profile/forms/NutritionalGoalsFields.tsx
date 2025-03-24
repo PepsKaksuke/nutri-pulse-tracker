@@ -154,6 +154,20 @@ export const NutritionalGoalsFields: React.FC<NutritionalGoalsFieldsProps> = ({ 
             </FormItem>
           )}
         />
+        
+        <FormField
+          control={form.control}
+          name="zinc"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Zinc (mg)</FormLabel>
+              <FormControl>
+                <Input type="number" step="0.1" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
       </div>
     </div>
   );
