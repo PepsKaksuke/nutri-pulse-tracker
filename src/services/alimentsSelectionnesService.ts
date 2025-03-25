@@ -56,7 +56,13 @@ export async function addAlimentSelectionne(profilId: string, alimentId: string,
     .eq('date_selection', date);
   
   if (existing && existing.length > 0) {
-    return existing[0];
+    return {
+      id: existing[0].id,
+      profil_id: existing[0].profil_id,
+      aliment_id: existing[0].aliment_id,
+      date_selection: existing[0].date_selection,
+      quantite: existing[0].quantite || '100g'
+    };
   }
   
   // Ajouter l'aliment à la sélection

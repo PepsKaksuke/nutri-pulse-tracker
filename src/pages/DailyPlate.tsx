@@ -24,7 +24,8 @@ const DailyPlate = () => {
     addFoodToPlate,
     removeFoodFromPlate,
     clearPlate,
-    getNutrientInfo
+    getNutrientInfo,
+    todayFoodIds
   } = useDailyPlate();
   
   // Use the nutrient arrays from nutrientRecommendations.ts
@@ -77,9 +78,10 @@ const DailyPlate = () => {
           isOpen={searchOpen}
           onClose={() => setSearchOpen(false)}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          onSearchChange={setSearchQuery}
           searchResults={searchResults}
-          onAddFood={addFoodToPlate}
+          onSelectFood={addFoodToPlate}
+          selectedFoodIds={todayFoodIds}
         />
       </div>
       

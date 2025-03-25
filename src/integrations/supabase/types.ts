@@ -114,18 +114,21 @@ export type Database = {
           date_selection: string
           id: string
           profil_id: string
+          quantite: string | null
         }
         Insert: {
           aliment_id: string
           date_selection?: string
           id?: string
           profil_id: string
+          quantite?: string | null
         }
         Update: {
           aliment_id?: string
           date_selection?: string
           id?: string
           profil_id?: string
+          quantite?: string | null
         }
         Relationships: [
           {
