@@ -19,7 +19,8 @@ export async function fetchAlimentsSelectionnes(profilId: string): Promise<Selec
     id: aliment.id,
     profil_id: aliment.profil_id,
     aliment_id: aliment.aliment_id,
-    date_selection: aliment.date_selection
+    date_selection: aliment.date_selection,
+    quantite: aliment.quantite || '100g'
   }));
 }
 
@@ -40,11 +41,12 @@ export async function fetchAlimentsSelectionnesByDate(profilId: string, date: st
     id: aliment.id,
     profil_id: aliment.profil_id,
     aliment_id: aliment.aliment_id,
-    date_selection: aliment.date_selection
+    date_selection: aliment.date_selection,
+    quantite: aliment.quantite || '100g'
   }));
 }
 
-export async function addAlimentSelectionne(profilId: string, alimentId: string, date: string): Promise<SelectedFood> {
+export async function addAlimentSelectionne(profilId: string, alimentId: string, date: string, quantite: string = '100g'): Promise<SelectedFood> {
   // Vérifier si l'aliment est déjà sélectionné pour cette date
   const { data: existing } = await supabase
     .from('aliments_selectionnes')
@@ -63,7 +65,8 @@ export async function addAlimentSelectionne(profilId: string, alimentId: string,
     .insert({
       profil_id: profilId,
       aliment_id: alimentId,
-      date_selection: date
+      date_selection: date,
+      quantite: quantite
     })
     .select()
     .single();
@@ -78,7 +81,8 @@ export async function addAlimentSelectionne(profilId: string, alimentId: string,
     id: data.id,
     profil_id: data.profil_id,
     aliment_id: data.aliment_id,
-    date_selection: data.date_selection
+    date_selection: data.date_selection,
+    quantite: data.quantite || '100g'
   };
 }
 

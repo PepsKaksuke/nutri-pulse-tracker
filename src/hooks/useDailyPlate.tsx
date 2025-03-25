@@ -75,7 +75,7 @@ export const useDailyPlate = () => {
     performSearch();
   }, [searchQuery]);
   
-  const addFoodToPlate = async (food: Food) => {
+  const addFoodToPlate = async (food: Food, quantity?: string) => {
     if (!activeProfileId) {
       toast.error('Aucun profil utilisateur actif');
       return;
@@ -97,7 +97,8 @@ export const useDailyPlate = () => {
       setTodayFoods([...todayFoods, food]);
       setTodayFoodIds([...todayFoodIds, food.id]);
       
-      toast.success(`${food.nom} ajouté à votre assiette`);
+      const quantityText = quantity ? ` (${quantity})` : '';
+      toast.success(`${food.nom}${quantityText} ajouté à votre assiette`);
       setSearchOpen(false);
       setSearchQuery('');
     } catch (error) {

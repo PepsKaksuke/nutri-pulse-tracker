@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import FoodCard from '@/components/ui-custom/FoodCard';
@@ -123,7 +124,7 @@ const Index = () => {
   };
 
   // Gérer la sélection d'un aliment
-  const handleSelectFood = async (food: Food) => {
+  const handleSelectFood = async (food: Food, quantity?: string) => {
     if (!activeProfileId) {
       toast.error('Veuillez sélectionner un profil pour ajouter des aliments');
       navigate('/profil/selection');
@@ -148,7 +149,8 @@ const Index = () => {
         // Ajouter à la sélection
         const newSelectedFood = await addAlimentSelectionne(activeProfileId, food.id, today);
         setSelectedFoods([...selectedFoods, newSelectedFood]);
-        toast.success(`${food.nom} ajouté à votre assiette`);
+        const quantityText = quantity ? ` (${quantity})` : '';
+        toast.success(`${food.nom}${quantityText} ajouté à votre assiette`);
       }
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la sélection:', error);

@@ -1,4 +1,3 @@
-
 // Types for the application
 
 export interface Food {
@@ -83,7 +82,8 @@ export interface SelectedFood {
   id: string;
   profil_id: string;
   aliment_id: string;
-  date_selection: string; // Format YYYY-MM-DD
+  date_selection: string;
+  quantite?: string;
 }
 
 // Recommandations nutritionnelles moyennes (pour comparaison avec les objectifs personnalisés)
