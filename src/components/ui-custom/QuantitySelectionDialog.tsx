@@ -2,14 +2,14 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Food } from '@/lib/types';
 import { Form, FormField, FormItem, FormControl } from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Info } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface QuantitySelectionDialogProps {
   food: Food;
@@ -18,8 +18,10 @@ interface QuantitySelectionDialogProps {
   onConfirm: (food: Food, quantity: string) => void;
 }
 
+type UnitType = 'g' | 'poignet';
+
 type QuantityFormValues = {
-  customGrams: string;
+  quantity: string;
 };
 
 export const QuantitySelectionDialog: React.FC<QuantitySelectionDialogProps> = ({
@@ -28,52 +30,41 @@ export const QuantitySelectionDialog: React.FC<QuantitySelectionDialogProps> = (
   onClose,
   onConfirm
 }) => {
-  const [selectedQuantity, setSelectedQuantity] = useState('100g');
-  const [customQuantityActive, setCustomQuantityActive] = useState(false);
+  const [unit, setUnit] = useState<UnitType>('g');
   
   const form = useForm<QuantityFormValues>({
     defaultValues: {
-      customGrams: ''
+      quantity: '100'
     }
   });
 
-  const handleRadioChange = (value: string) => {
-    setSelectedQuantity(value);
-    setCustomQuantityActive(false);
-  };
-
-  const handleCustomInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (value.trim() !== '') {
-      setCustomQuantityActive(true);
-    } else {
-      setCustomQuantityActive(false);
-    }
-  };
-
   const handleConfirm = () => {
-    let finalQuantity = selectedQuantity;
+    const quantityValue = form.getValues().quantity;
     
-    // Si une quantité personnalisée est active, l'utiliser
-    if (customQuantityActive) {
-      const customValue = form.getValues().customGrams;
-      // Vérifier que la valeur n'est pas vide et est un nombre positif
-      if (customValue && !isNaN(Number(customValue)) && Number(customValue) > 0) {
-        finalQuantity = `${customValue}g`;
-      } else {
-        // En cas d'erreur, on reste sur l'option sélectionnée
-        setCustomQuantityActive(false);
-        return;
-      }
+    // Validation: Check if quantity is a valid positive number
+    if (!quantityValue || isNaN(Number(quantityValue)) || Number(quantityValue) <= 0) {
+      return; // Don't proceed if invalid
     }
+    
+    // Format the final quantity string based on selected unit
+    const finalQuantity = `${quantityValue}${unit === 'g' ? 'g' : ' poignet'}`;
     
     onConfirm(food, finalQuantity);
     onClose();
     
-    // Réinitialiser l'état pour la prochaine ouverture
-    setSelectedQuantity('100g');
-    setCustomQuantityActive(false);
-    form.reset();
+    // Reset form and unit for next use
+    form.reset({ quantity: '100' });
+    setUnit('g');
+  };
+
+  const handleUnitChange = (value: UnitType) => {
+    setUnit(value);
+    // Set a sensible default based on unit
+    if (value === 'g') {
+      form.setValue('quantity', '100');
+    } else {
+      form.setValue('quantity', '1');
+    }
   };
 
   return (
@@ -85,59 +76,53 @@ export const QuantitySelectionDialog: React.FC<QuantitySelectionDialogProps> = (
         
         <Form {...form}>
           <div className="py-4 space-y-4">
-            <RadioGroup 
-              value={customQuantityActive ? "" : selectedQuantity} 
-              onValueChange={handleRadioChange} 
-              className="space-y-3"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="100g" id="100g" />
-                <Label htmlFor="100g" className="cursor-pointer">100 grammes</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="1 poignet" id="1_poignet" />
-                <Label htmlFor="1_poignet" className="cursor-pointer">
-                  1 poignet
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 p-0">
-                        <Info className="h-3.5 w-3.5 text-gray-400" />
-                        <span className="sr-only">Plus d'info</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60 p-3 text-sm">
-                      <p>Correspond à environ 30-40g pour la plupart des aliments</p>
-                    </PopoverContent>
-                  </Popover>
-                </Label>
-              </div>
-            </RadioGroup>
-            
-            <div className="mt-4 pt-4 border-t border-gray-100">
-              <FormField
-                control={form.control}
-                name="customGrams"
-                render={({ field }) => (
-                  <FormItem>
-                    <Label htmlFor="customGrams">Saisir une quantité en grammes</Label>
+            <FormField
+              control={form.control}
+              name="quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <Label htmlFor="quantity">Saisir la quantité</Label>
+                  <div className="flex items-center gap-2 mt-1">
                     <FormControl>
                       <Input
                         {...field}
-                        id="customGrams"
+                        id="quantity"
                         type="number"
                         min="1"
-                        placeholder="ex : 45"
-                        className="mt-1"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          handleCustomInputChange(e);
-                        }}
+                        className="flex-1"
                       />
                     </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+                    
+                    <div className="relative flex-initial w-28">
+                      <Select value={unit} onValueChange={(value: UnitType) => handleUnitChange(value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Unité" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="g">g</SelectItem>
+                          <SelectItem value="poignet">
+                            <div className="flex items-center">
+                              poignet
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-5 w-5 ml-1 p-0">
+                                    <Info className="h-3.5 w-3.5 text-gray-400" />
+                                    <span className="sr-only">Plus d'info</span>
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-60 p-3 text-sm">
+                                  <p>Correspond à environ 30-40g pour la plupart des aliments</p>
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </FormItem>
+              )}
+            />
           </div>
         </Form>
         
